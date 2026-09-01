@@ -130,7 +130,7 @@ app.MapPost("/api/auth/register", async (
 
     return result switch
     {
-        RegistrationOutcome.Success success => Results.Created($"/api/users/{success.User.Id}", success.User),
+        RegistrationOutcome.Success success => Results.Created($"/api/admin/users/{success.User.Id}", success.User),
         RegistrationOutcome.ValidationFailure failure => Results.ValidationProblem(
             failure.Errors.ToDictionary(pair => pair.Key, pair => pair.Value)),
         RegistrationOutcome.Conflict => Results.Problem(
@@ -422,7 +422,7 @@ app.MapPost("/api/admin/games", [Authorize(Policy = "AdministratorOnly")] async 
 
     return result switch
     {
-        GameRegistrationOutcome.Success success => Results.Created($"/api/admin/games/{success.Game.Id}", success.Game),
+        GameRegistrationOutcome.Success success => Results.Created($"/api/games/{success.Game.Id}", success.Game),
         GameRegistrationOutcome.ValidationFailure failure => Results.ValidationProblem(
             failure.Errors.ToDictionary(pair => pair.Key, pair => pair.Value)),
         _ => throw new InvalidOperationException("Unexpected game registration outcome.")
@@ -455,7 +455,9 @@ app.MapPost("/api/admin/promotions", [Authorize(Policy = "AdministratorOnly")] a
 
     return result switch
     {
-        PromotionRegistrationOutcome.Success success => Results.Created($"/api/admin/promotions/{success.Promotion.Id}", success.Promotion),
+        PromotionRegistrationOutcome.Success success => Results.Json(
+            success.Promotion,
+            statusCode: StatusCodes.Status201Created),
         PromotionRegistrationOutcome.ValidationFailure failure => Results.ValidationProblem(
             failure.Errors.ToDictionary(pair => pair.Key, pair => pair.Value)),
         PromotionRegistrationOutcome.Conflict => Results.Problem(
