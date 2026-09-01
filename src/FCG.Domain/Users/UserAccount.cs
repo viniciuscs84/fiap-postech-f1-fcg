@@ -55,4 +55,11 @@ public sealed class UserAccount
             CreatedAtUtc = DateTime.SpecifyKind(createdAtUtc, DateTimeKind.Utc)
         };
     }
+
+    /// <summary>Changes the authorization role assigned to the account.</summary>
+    /// <param name="role">New role to assign.</param>
+    public void ChangeRole(UserRole role)
+    {
+        Role = role;
+    }
 }
