@@ -9,7 +9,7 @@ Os nomes visíveis da coleção, pastas, requisições, ambiente e variáveis do
 ## Arquivos
 
 - `FCG-Fase1.postman_collection.json`: coleção completa com todos os endpoints da Fase 1, com nomes e descrições em português brasileiro.
-- `FCG-Local-PTBR.postman_environment.json`: ambiente local com URL, credenciais de demonstração e variáveis reutilizadas pela coleção, também nomeadas em português brasileiro.
+- `FCG-Local-PTBR.postman_environment.json`: ambiente local com URL, credenciais de demonstração e variáveis reutilizadas pela coleção.
 
 ## Pré-requisitos
 
@@ -29,31 +29,40 @@ O administrador de demonstração criado pela migration de seed utiliza:
 
 ## Fluxo sugerido
 
-Para uma demonstração encadeada, execute as requisições aproximadamente nesta ordem:
+A coleção foi organizada para permitir uma demonstração encadeada na própria ordem das pastas:
 
-1. `Cadastrar usuário`.
-2. `Autenticar usuário`.
-3. `Autenticar administrador`.
-4. `Cadastrar jogo`.
-5. `Listar jogos` e `Consultar jogo por ID`.
-6. `Associar jogo à minha biblioteca` e `Consultar minha biblioteca`.
-7. Operações de administração de usuários.
-8. `Cadastrar promoção`.
-9. `Excluir usuário` somente ao final, pois é uma operação destrutiva.
+1. `Autenticação`: cadastrar o usuário e autenticar usuário e administrador.
+2. `Administração de Jogos`: cadastrar dois jogos distintos.
+3. `Catálogo de Jogos`: listar o catálogo e consultar um jogo por ID.
+4. `Biblioteca de Jogos`: associar o primeiro jogo à própria biblioteca e consultar a biblioteca.
+5. `Administração de Usuários`: consultar usuários, conceder o segundo jogo ao usuário, alterar/restaurar seu papel e, opcionalmente, excluí-lo ao final.
+6. `Administração de Promoções`: cadastrar uma promoção.
+
+São usados dois jogos diferentes para que os dois fluxos de associação possam ser demonstrados com sucesso:
+
+- `idJogoCompraUsuario`: utilizado no endpoint de associação à própria biblioteca;
+- `idJogoConcessaoAdministrador`: utilizado na concessão administrativa a um usuário específico.
+
+Isso evita que o segundo fluxo retorne `409 Conflict` por tentar associar o mesmo jogo duas vezes ao mesmo usuário.
 
 ## Variáveis automáticas
 
-A coleção armazena automaticamente:
+A coleção utiliza exclusivamente o **ambiente selecionado** para armazenar valores gerados durante a execução. Os scripts usam `pm.environment.set(...)`, evitando conflito de precedência entre variáveis de coleção e de ambiente.
+
+São preenchidas automaticamente:
 
 - `tokenUsuario` após a autenticação do usuário;
 - `tokenAdministrador` após a autenticação do administrador;
-- `idUsuario` após um cadastro bem-sucedido;
-- `idJogo` após o cadastro de um jogo;
-- `idPromocao` após o cadastro de uma promoção.
+- `idUsuario` após o cadastro do usuário;
+- `idJogoCompraUsuario` após o primeiro cadastro de jogo;
+- `idJogoConcessaoAdministrador` após o segundo cadastro de jogo;
+- `idPromocao` após o cadastro da promoção.
 
-Também são utilizadas as variáveis `urlBase`, `nomeUsuario`, `emailUsuario`, `senhaUsuario`, `emailAdministrador` e `senhaAdministrador`.
+Também são utilizadas as variáveis configuráveis `urlBase`, `nomeUsuario`, `emailUsuario`, `senhaUsuario`, `emailAdministrador` e `senhaAdministrador`.
 
-As demais requisições reutilizam essas variáveis, reduzindo a necessidade de copiar IDs e tokens manualmente.
+## Reexecução da coleção
+
+Para uma demonstração totalmente limpa, recomenda-se executar a collection sobre um banco recém-criado pelas migrations. Caso a mesma base seja reutilizada, cadastros com o mesmo e-mail, códigos de promoção ou outros dados únicos podem retornar conflito conforme as regras da aplicação.
 
 ## Observação sobre aquisição
 
