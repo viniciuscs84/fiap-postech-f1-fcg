@@ -17,12 +17,10 @@ using FCG.Infrastructure.Promotions;
 using FCG.Infrastructure.Persistence;
 using FCG.Infrastructure.Security;
 using FCG.Infrastructure.Users;
-using FCG.Migrations;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Security.Claims;
@@ -30,13 +28,11 @@ using System.Security.Claims;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
-builder.Services.Configure<BootstrapAdminOptions>(builder.Configuration.GetSection(BootstrapAdminOptions.SectionName));
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=fcg.db";
-    options.UseSqlite(connectionString, sqlite =>
-        sqlite.MigrationsAssembly(typeof(MigrationAssemblyMarker).Assembly.GetName().Name));
+    options.UseSqlite(connectionString);
 });
 
 builder.Services.AddScoped<IUserRepository, EfUserRepository>();
@@ -121,32 +117,6 @@ app.UseSwaggerUI(options =>
     options.RoutePrefix = "swagger";
     options.DocumentTitle = "FCG API - Swagger";
 });
-
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await dbContext.Database.MigrateAsync();
-
-    var bootstrapAdmin = scope.ServiceProvider.GetRequiredService<IOptions<BootstrapAdminOptions>>().Value;
-    if (bootstrapAdmin.Enabled && !string.IsNullOrWhiteSpace(bootstrapAdmin.Email) && !string.IsNullOrWhiteSpace(bootstrapAdmin.Password))
-    {
-        var normalizedEmail = RegistrationRules.NormalizeEmail(bootstrapAdmin.Email);
-        var existingAdmin = await dbContext.Users.SingleOrDefaultAsync(user => user.NormalizedEmail == normalizedEmail && user.Role == UserRole.Administrator);
-        if (existingAdmin is null)
-        {
-            var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
-            var admin = UserAccount.Register(
-                RegistrationRules.NormalizeName(bootstrapAdmin.Name),
-                bootstrapAdmin.Email,
-                passwordHasher.HashPassword(bootstrapAdmin.Password),
-                UserRole.Administrator,
-                DateTime.UtcNow);
-
-            dbContext.Users.Add(admin);
-            await dbContext.SaveChangesAsync();
-        }
-    }
-}
 
 app.UseAuthentication();
 app.UseAuthorization();
