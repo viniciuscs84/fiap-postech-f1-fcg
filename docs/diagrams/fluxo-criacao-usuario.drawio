@@ -1,44 +1,88 @@
-<mxfile host="app.diagrams.net" modified="2026-09-01T00:00:00.000Z" agent="Codex" version="24.7.8">
-  <diagram id="user-creation-flow" name="Fluxo de Criação de Usuário">
-    <mxGraphModel dx="1280" dy="720" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="900" math="0" shadow="0">
+<mxfile host="app.diagrams.net" modified="2026-09-01T11:15:00.000Z" agent="ChatGPT" version="24.7.8">
+  <diagram id="user-auth-flow" name="Usuários - Cadastro e Autenticação">
+    <mxGraphModel dx="1600" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1000" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="2" value="Usuário não autenticado" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1">
-          <mxGeometry x="60" y="190" width="40" height="80" as="geometry" />
-        </mxCell>
-        <mxCell id="3" value="Comando: cadastrar usuário" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
-          <mxGeometry x="170" y="180" width="170" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="4" value="Validar nome, e-mail e senha" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
-          <mxGeometry x="380" y="180" width="190" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="5" value="Invariante: formato do e-mail válido&#xa;Invariante: senha atende às regras de segurança&#xa;Invariante: e-mail é único" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
-          <mxGeometry x="610" y="160" width="230" height="100" as="geometry" />
-        </mxCell>
-        <mxCell id="6" value="Gerar hash da senha" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
-          <mxGeometry x="880" y="180" width="140" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="7" value="Agregado de Usuário&#xa;- nome&#xa;- e-mail&#xa;- hash da senha&#xa;- papel User padrão" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
-          <mxGeometry x="1050" y="150" width="210" height="120" as="geometry" />
-        </mxCell>
-        <mxCell id="8" value="Persistir usuário" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
-          <mxGeometry x="1290" y="180" width="140" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="9" value="Evento UsuárioCadastrado" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
-          <mxGeometry x="1460" y="180" width="150" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="10" value="Política: atribuir papel User padrão" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
-          <mxGeometry x="1050" y="290" width="210" height="50" as="geometry" />
-        </mxCell>
-        <mxCell id="11" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="2" target="3"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="12" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="3" target="4"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="13" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="4" target="5"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="14" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="5" target="6"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="15" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="6" target="7"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="16" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="7" target="8"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="17" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="8" target="9"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="18" style="endArrow=block;html=1;rounded=0;dashed=1;" edge="1" parent="1" source="7" target="10"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="title" value="Contas de usuário - cadastro e autenticação" style="text;html=1;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="500" y="30" width="700" height="40" as="geometry" /></mxCell>
+        <mxCell id="legend" value="Azul: comando/query | Amarelo: validação | Vermelho: regra/autorização | Verde: agregado/estado | Laranja: resultado/evento" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;" vertex="1" parent="1"><mxGeometry x="370" y="80" width="960" height="40" as="geometry" /></mxCell>
+
+        <mxCell id="visitor" value="Visitante" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1"><mxGeometry x="50" y="195" width="50" height="80" as="geometry" /></mxCell>
+        <mxCell id="register" value="POST /api/auth/register&#xa;Comando: cadastrar usuário" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="140" y="180" width="210" height="70" as="geometry" /></mxCell>
+        <mxCell id="validate-register" value="Validar nome, e-mail e senha&#xa;- e-mail válido&#xa;- senha com 8+ caracteres, letra, número e especial" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1"><mxGeometry x="390" y="165" width="250" height="100" as="geometry" /></mxCell>
+        <mxCell id="unique-email" value="Invariante: e-mail normalizado é único" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1"><mxGeometry x="680" y="180" width="210" height="70" as="geometry" /></mxCell>
+        <mxCell id="hash" value="Gerar hash seguro da senha" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1"><mxGeometry x="930" y="180" width="180" height="70" as="geometry" /></mxCell>
+        <mxCell id="user-aggregate" value="Agregado UserAccount&#xa;- nome&#xa;- e-mail normalizado&#xa;- hash&#xa;- papel User padrão" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1"><mxGeometry x="1150" y="155" width="220" height="120" as="geometry" /></mxCell>
+        <mxCell id="persist-user" value="Persistir usuário" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="1410" y="180" width="150" height="70" as="geometry" /></mxCell>
+        <mxCell id="register-result" value="Usuário cadastrado&#xa;201 Created&#xa;409 se e-mail duplicado&#xa;400 se inválido" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1"><mxGeometry x="1600" y="165" width="170" height="100" as="geometry" /></mxCell>
+
+        <mxCell id="registered-user" value="Usuário / Administrador" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1"><mxGeometry x="50" y="465" width="50" height="80" as="geometry" /></mxCell>
+        <mxCell id="login" value="POST /api/auth/login&#xa;Comando: autenticar" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="140" y="450" width="210" height="70" as="geometry" /></mxCell>
+        <mxCell id="normalize-login" value="Normalizar e-mail e localizar conta" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1"><mxGeometry x="390" y="450" width="220" height="70" as="geometry" /></mxCell>
+        <mxCell id="verify-password" value="Verificar hash da senha" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1"><mxGeometry x="650" y="450" width="190" height="70" as="geometry" /></mxCell>
+        <mxCell id="claims" value="Montar identidade&#xa;- UserId&#xa;- papel User ou Administrator" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1"><mxGeometry x="880" y="435" width="220" height="100" as="geometry" /></mxCell>
+        <mxCell id="jwt" value="Emitir JWT assinado&#xa;issuer, audience, expiração e role" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1"><mxGeometry x="1140" y="435" width="240" height="100" as="geometry" /></mxCell>
+        <mxCell id="login-result" value="Autenticação concluída&#xa;200 com token JWT&#xa;401 para credenciais inválidas" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1"><mxGeometry x="1420" y="435" width="240" height="100" as="geometry" /></mxCell>
+
+        <mxCell id="e1" style="endArrow=block;html=1;" edge="1" parent="1" source="visitor" target="register"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e2" style="endArrow=block;html=1;" edge="1" parent="1" source="register" target="validate-register"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e3" style="endArrow=block;html=1;" edge="1" parent="1" source="validate-register" target="unique-email"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e4" style="endArrow=block;html=1;" edge="1" parent="1" source="unique-email" target="hash"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e5" style="endArrow=block;html=1;" edge="1" parent="1" source="hash" target="user-aggregate"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e6" style="endArrow=block;html=1;" edge="1" parent="1" source="user-aggregate" target="persist-user"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e7" style="endArrow=block;html=1;" edge="1" parent="1" source="persist-user" target="register-result"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e8" style="endArrow=block;html=1;" edge="1" parent="1" source="registered-user" target="login"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e9" style="endArrow=block;html=1;" edge="1" parent="1" source="login" target="normalize-login"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e10" style="endArrow=block;html=1;" edge="1" parent="1" source="normalize-login" target="verify-password"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e11" style="endArrow=block;html=1;" edge="1" parent="1" source="verify-password" target="claims"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e12" style="endArrow=block;html=1;" edge="1" parent="1" source="claims" target="jwt"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e13" style="endArrow=block;html=1;" edge="1" parent="1" source="jwt" target="login-result"><mxGeometry relative="1" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram id="user-admin-flow" name="Usuários - Administração">
+    <mxGraphModel dx="1600" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Administração de usuários" style="text;html=1;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="550" y="30" width="650" height="40" as="geometry" /></mxCell>
+        <mxCell id="admin" value="Administrador" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1"><mxGeometry x="60" y="450" width="50" height="80" as="geometry" /></mxCell>
+        <mxCell id="auth" value="Policy AdministratorOnly&#xa;Usuário comum recebe 403" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1"><mxGeometry x="150" y="440" width="210" height="90" as="geometry" /></mxCell>
+
+        <mxCell id="list" value="GET /api/admin/users&#xa;Query: listar usuários" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="430" y="140" width="220" height="70" as="geometry" /></mxCell>
+        <mxCell id="list-read" value="Ler contas cadastradas&#xa;sem expor PasswordHash" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1"><mxGeometry x="710" y="140" width="220" height="70" as="geometry" /></mxCell>
+        <mxCell id="list-result" value="200 OK&#xa;lista de usuários" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1"><mxGeometry x="990" y="140" width="180" height="70" as="geometry" /></mxCell>
+
+        <mxCell id="get" value="GET /api/admin/users/{userId}&#xa;Query: consultar usuário" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="430" y="310" width="240" height="70" as="geometry" /></mxCell>
+        <mxCell id="get-read" value="Localizar UserAccount pelo id" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1"><mxGeometry x="730" y="310" width="220" height="70" as="geometry" /></mxCell>
+        <mxCell id="get-result" value="200 OK&#xa;404 se não encontrado" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1"><mxGeometry x="1010" y="310" width="190" height="70" as="geometry" /></mxCell>
+
+        <mxCell id="role" value="PATCH /api/admin/users/{userId}/role&#xa;Comando: alterar papel" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="430" y="500" width="250" height="80" as="geometry" /></mxCell>
+        <mxCell id="role-rules" value="Validar papel User ou Administrator&#xa;Invariante: admin não altera o próprio papel" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1"><mxGeometry x="740" y="490" width="260" height="100" as="geometry" /></mxCell>
+        <mxCell id="role-state" value="Alterar UserAccount.Role&#xa;e persistir" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1"><mxGeometry x="1060" y="500" width="200" height="80" as="geometry" /></mxCell>
+        <mxCell id="role-result" value="200 OK&#xa;400 papel inválido&#xa;404 usuário inexistente&#xa;409 conflito" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1"><mxGeometry x="1320" y="490" width="210" height="100" as="geometry" /></mxCell>
+
+        <mxCell id="delete" value="DELETE /api/admin/users/{userId}&#xa;Comando: excluir usuário" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="430" y="700" width="250" height="80" as="geometry" /></mxCell>
+        <mxCell id="delete-rules" value="Localizar usuário&#xa;Invariante: admin não exclui a própria conta" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1"><mxGeometry x="740" y="690" width="260" height="100" as="geometry" /></mxCell>
+        <mxCell id="delete-state" value="Remover UserAccount&#xa;AcquiredGames relacionados são removidos por cascade" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1"><mxGeometry x="1060" y="680" width="260" height="120" as="geometry" /></mxCell>
+        <mxCell id="delete-result" value="204 No Content&#xa;404 usuário inexistente&#xa;409 conflito" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1"><mxGeometry x="1380" y="695" width="200" height="90" as="geometry" /></mxCell>
+
+        <mxCell id="e1" style="endArrow=block;html=1;" edge="1" parent="1" source="admin" target="auth"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e2" style="endArrow=block;html=1;" edge="1" parent="1" source="auth" target="list"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e3" style="endArrow=block;html=1;" edge="1" parent="1" source="list" target="list-read"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e4" style="endArrow=block;html=1;" edge="1" parent="1" source="list-read" target="list-result"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e5" style="endArrow=block;html=1;" edge="1" parent="1" source="auth" target="get"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e6" style="endArrow=block;html=1;" edge="1" parent="1" source="get" target="get-read"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e7" style="endArrow=block;html=1;" edge="1" parent="1" source="get-read" target="get-result"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e8" style="endArrow=block;html=1;" edge="1" parent="1" source="auth" target="role"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e9" style="endArrow=block;html=1;" edge="1" parent="1" source="role" target="role-rules"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e10" style="endArrow=block;html=1;" edge="1" parent="1" source="role-rules" target="role-state"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e11" style="endArrow=block;html=1;" edge="1" parent="1" source="role-state" target="role-result"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e12" style="endArrow=block;html=1;" edge="1" parent="1" source="auth" target="delete"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e13" style="endArrow=block;html=1;" edge="1" parent="1" source="delete" target="delete-rules"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e14" style="endArrow=block;html=1;" edge="1" parent="1" source="delete-rules" target="delete-state"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e15" style="endArrow=block;html=1;" edge="1" parent="1" source="delete-state" target="delete-result"><mxGeometry relative="1" as="geometry" /></mxCell>
       </root>
     </mxGraphModel>
   </diagram>
