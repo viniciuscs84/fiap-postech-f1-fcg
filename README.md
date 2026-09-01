@@ -21,6 +21,7 @@ A API da Fase 1 oferece:
 - Projeto independente `FCG.Migrations` como único responsável pela evolução estrutural e inicialização controlada do banco de dados.
 - Migration de seed com a conta administrativa inicial necessária para operar os endpoints administrativos.
 - Documentação OpenAPI interativa por meio do Swagger UI.
+- Coleção Postman completa, com nomes, descrições e variáveis padronizados em português brasileiro.
 
 ### Limites da Fase 1
 
@@ -51,7 +52,8 @@ O cadastro de promoções também é administrativo nesta fase. A API registra a
 |-- tests
 |   `-- FCG.Tests            # Testes unitários e de integração
 |-- docs
-|   `-- diagrams             # Diagramas DDD e fluxos da Fase 1
+|   |-- diagrams             # Diagramas DDD e fluxos da Fase 1
+|   `-- postman              # Coleção e ambiente Postman em português brasileiro
 `-- FCG.slnx                 # Arquivo da solução
 ```
 
@@ -192,6 +194,18 @@ Os endpoints possuem tags, resumos, descrições, contratos de resposta e códig
 - Um jogo não pode ser associado duas vezes à biblioteca do mesmo usuário; a tentativa duplicada retorna `409 Conflict`.
 - Um administrador não pode alterar o próprio papel nem excluir a própria conta; essas operações retornam `409 Conflict`.
 - O cadastro de usuário rejeita e-mails duplicados e dados que não atendam às regras de validação.
+
+## Postman
+
+Os artefatos do Postman estão em [`docs/postman`](docs/postman):
+
+- [`FCG-Fase1.postman_collection.json`](docs/postman/FCG-Fase1.postman_collection.json): coleção com todos os endpoints da Fase 1.
+- [`FCG-Local-PTBR.postman_environment.json`](docs/postman/FCG-Local-PTBR.postman_environment.json): ambiente local usado pela coleção.
+- [`docs/postman/README.md`](docs/postman/README.md): instruções e ordem sugerida para a demonstração.
+
+Os **nomes visíveis da coleção, pastas, requisições, ambiente e variáveis foram padronizados em português brasileiro**. Elementos pertencentes ao contrato técnico da API permanecem inalterados, como rotas HTTP, propriedades JSON (`name`, `email`, `password`, `role`, etc.) e os valores de papel `User` e `Administrator`.
+
+A coleção utiliza variáveis como `urlBase`, `nomeUsuario`, `emailUsuario`, `senhaUsuario`, `tokenUsuario`, `tokenAdministrador`, `idUsuario`, `idJogo` e `idPromocao`. Os scripts das requisições de autenticação e cadastro preenchem automaticamente tokens e identificadores para facilitar a execução encadeada do cenário.
 
 ## Exemplos de Uso
 
