@@ -49,6 +49,7 @@ builder.Services.AddScoped<IUserRegistrationService, UserRegistrationService>();
 builder.Services.AddScoped<IUserAdministrationService, UserAdministrationService>();
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IGameRegistrationService, GameRegistrationService>();
+builder.Services.AddScoped<IGameCatalogService, GameCatalogService>();
 builder.Services.AddScoped<ILibraryService, LibraryService>();
 builder.Services.AddScoped<IPromotionRegistrationService, PromotionRegistrationService>();
 
@@ -197,6 +198,38 @@ app.MapPost("/api/auth/login", async (
 .Produces<LoginResponseDto>(StatusCodes.Status200OK)
 .Produces(StatusCodes.Status401Unauthorized)
 .Produces(StatusCodes.Status500InternalServerError);
+
+app.MapGet("/api/games", [Authorize(Policy = "UserOrAdministrator")] async (
+    IGameCatalogService gameCatalogService,
+    CancellationToken cancellationToken) =>
+{
+    var games = await gameCatalogService.ListAsync(cancellationToken);
+    return Results.Ok(games);
+})
+.WithTags("Jogos")
+.WithSummary("Consultar o catálogo de jogos.")
+.WithDescription("Retorna os jogos disponíveis no catálogo para usuários autenticados e administradores.")
+.Produces<IReadOnlyList<GameCatalogItemResponse>>(StatusCodes.Status200OK)
+.Produces(StatusCodes.Status401Unauthorized)
+.Produces(StatusCodes.Status403Forbidden)
+.ProducesProblem(StatusCodes.Status500InternalServerError);
+
+app.MapGet("/api/games/{gameId:guid}", [Authorize(Policy = "UserOrAdministrator")] async (
+    Guid gameId,
+    IGameCatalogService gameCatalogService,
+    CancellationToken cancellationToken) =>
+{
+    var game = await gameCatalogService.GetByIdAsync(gameId, cancellationToken);
+    return game is null ? Results.NotFound() : Results.Ok(game);
+})
+.WithTags("Jogos")
+.WithSummary("Consultar um jogo do catálogo.")
+.WithDescription("Retorna os detalhes de um jogo do catálogo pelo identificador.")
+.Produces<GameCatalogItemResponse>(StatusCodes.Status200OK)
+.Produces(StatusCodes.Status401Unauthorized)
+.Produces(StatusCodes.Status403Forbidden)
+.Produces(StatusCodes.Status404NotFound)
+.ProducesProblem(StatusCodes.Status500InternalServerError);
 
 app.MapGet("/api/library/me", [Authorize(Policy = "UserOrAdministrator")] async (
     ClaimsPrincipal user,
