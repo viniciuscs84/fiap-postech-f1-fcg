@@ -325,6 +325,41 @@ app.MapGet("/api/admin/users/{userId:guid}", [Authorize(Policy = "AdministratorO
 .Produces(StatusCodes.Status404NotFound)
 .ProducesProblem(StatusCodes.Status500InternalServerError);
 
+app.MapPost("/api/admin/users/{userId:guid}/games/{gameId:guid}", [Authorize(Policy = "AdministratorOnly")] async (
+    Guid userId,
+    Guid gameId,
+    IUserAdministrationService userAdministrationService,
+    ILibraryService libraryService,
+    CancellationToken cancellationToken) =>
+{
+    var managedUser = await userAdministrationService.GetByIdAsync(userId, cancellationToken);
+    if (managedUser is null)
+    {
+        return Results.NotFound();
+    }
+
+    var result = await libraryService.AcquireAsync(userId, gameId, cancellationToken);
+    return result switch
+    {
+        GameAcquisitionOutcome.Success success => Results.Created($"/api/admin/users/{userId}", success.Item),
+        GameAcquisitionOutcome.GameNotFound => Results.NotFound(),
+        GameAcquisitionOutcome.AlreadyAcquired => Results.Problem(
+            detail: "Este jogo já está associado à biblioteca do usuário.",
+            statusCode: StatusCodes.Status409Conflict,
+            title: "Conflict"),
+        _ => throw new InvalidOperationException("Unexpected game acquisition outcome.")
+    };
+})
+.WithTags("Usuários")
+.WithSummary("Associar um jogo à biblioteca de um usuário.")
+.WithDescription("Permite que um administrador registre a concessão de um jogo a um usuário específico após a conclusão de um fluxo externo de compra ou pagamento. Esta operação registra somente a associação usuário-jogo.")
+.Produces<LibraryItemResponse>(StatusCodes.Status201Created)
+.Produces(StatusCodes.Status401Unauthorized)
+.Produces(StatusCodes.Status403Forbidden)
+.Produces(StatusCodes.Status404NotFound)
+.ProducesProblem(StatusCodes.Status409Conflict)
+.ProducesProblem(StatusCodes.Status500InternalServerError);
+
 app.MapPatch("/api/admin/users/{userId:guid}/role", [Authorize(Policy = "AdministratorOnly")] async (
     Guid userId,
     UpdateUserRoleCommand command,
