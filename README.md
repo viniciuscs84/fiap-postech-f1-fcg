@@ -333,7 +333,34 @@ A suíte contém testes unitários e de integração para, entre outros comporta
 - persistência e restrições do banco;
 - contratos HTTP e cenários de erro relevantes.
 
-Os testes automatizados são usados como especificações executáveis dos comportamentos da aplicação e como proteção contra regressões. O histórico de commits não deve ser interpretado, isoladamente, como evidência cronológica da ordem em que testes e implementação foram escritos.
+Os testes automatizados são usados como especificações executáveis dos comportamentos da aplicação e como proteção contra regressões.
+
+### TDD aplicado — Cadastro de usuários
+
+Para atender ao requisito de utilização de TDD ou BDD em pelo menos um módulo da aplicação, o **cadastro de usuários** foi adotado como módulo de referência para aplicação de **Test-Driven Development (TDD)**.
+
+As regras de cadastro foram tratadas como comportamentos testáveis antes de sua consolidação na implementação, seguindo o ciclo **Red → Green → Refactor**:
+
+1. **Red:** definição dos cenários e resultados esperados por meio dos testes unitários.
+2. **Green:** implementação das regras necessárias para atender aos cenários especificados.
+3. **Refactor:** organização e isolamento das regras de validação em `RegistrationRules`, mantendo a orquestração do caso de uso em `UserRegistrationService`.
+
+A principal evidência desse módulo está em [`RegistrationRulesTests.cs`](tests/FCG.Tests/Users/RegistrationRulesTests.cs), que especifica:
+
+- cadastro com dados válidos;
+- rejeição de e-mail vazio ou em formato inválido;
+- senha com no mínimo 8 caracteres;
+- obrigatoriedade de letras, números e caracteres especiais.
+
+O comportamento do caso de uso é complementado por [`UserRegistrationServiceTests.cs`](tests/FCG.Tests/Users/UserRegistrationServiceTests.cs), que verifica:
+
+- rejeição de e-mail já cadastrado;
+- armazenamento da senha utilizando hash;
+- atribuição do papel `User` como papel padrão.
+
+A implementação correspondente está em [`RegistrationRules.cs`](src/FCG.Application/Users/RegistrationRules.cs) e no serviço `UserRegistrationService`.
+
+Os demais testes unitários e de integração ampliam a proteção contra regressões da aplicação, mas o **cadastro de usuários é o módulo explicitamente identificado neste projeto como aplicação de TDD**.
 
 ## Arquitetura e Práticas de Engenharia
 
