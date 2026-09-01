@@ -1,20 +1,31 @@
 # FIAP Cloud Games (FCG)
 
-FIAP Cloud Games (FCG) é uma API REST em .NET 8 para a primeira fase de um marketplace de jogos digitais. O escopo atual contempla contas de usuários, autenticação JWT, gerenciamento administrativo do catálogo, promoções e a biblioteca de jogos adquiridos pelo usuário autenticado.
+FIAP Cloud Games (FCG) é uma API REST em .NET 8 desenvolvida para a Fase 1 do Tech Challenge. O serviço concentra o cadastro e a autenticação de usuários, administração de contas, catálogo de jogos, promoções e bibliotecas de jogos adquiridos.
+
+Nesta fase, a FCG registra a propriedade de um jogo após a conclusão de um fluxo externo de compra. Processamento de compra, cobrança e pagamento não fazem parte desta API.
 
 ## Escopo Atual
 
 A API da Fase 1 oferece:
 
-- Cadastro e login de usuários.
-- Autenticação com JWT bearer e autorização baseada em funções.
+- Cadastro de usuários com validação de nome, e-mail e senha segura.
+- Login e emissão de JWT bearer.
+- Autorização baseada nos papéis `User` e `Administrator`.
+- Administração de usuários: listagem, consulta, alteração de papel e exclusão.
 - Cadastro de jogos no catálogo por administradores.
-- Cadastro de promoções por administradores.
-- Consulta autenticada da biblioteca de jogos adquiridos pelo usuário atual.
-- Aplicação automática das migrações do banco na inicialização da API.
+- Consulta autenticada do catálogo e dos detalhes de um jogo.
+- Cadastro administrativo de promoções.
+- Consulta da biblioteca de jogos adquiridos pelo usuário autenticado.
+- Associação de um jogo à própria biblioteca após a conclusão de uma compra externa.
+- Associação administrativa de um jogo à biblioteca de um usuário específico.
+- Aplicação automática das migrações do banco de dados na inicialização da API.
 - Documentação OpenAPI interativa por meio do Swagger UI.
 
-A solução está intencionalmente limitada às capacidades aprovadas para a Fase 1. Processamento de pagamentos, sincronização com calendários ou provedores externos, videoconferência e capacidades futuras de automação não fazem parte da implementação atual.
+### Limites da Fase 1
+
+A associação de um jogo a uma biblioteca representa somente a concessão da propriedade do jogo dentro da FCG. A API não implementa checkout, meios de pagamento, cobrança ou confirmação financeira. Esses processos são considerados externos e, após sua conclusão, a FCG recebe apenas a operação necessária para registrar a associação entre usuário e jogo.
+
+O cadastro de promoções também é administrativo nesta fase. A API registra a promoção e suas regras, mas não implementa um fluxo de compra nem o cálculo de preço final com desconto.
 
 ## Stack Tecnológica
 
@@ -31,16 +42,16 @@ A solução está intencionalmente limitada às capacidades aprovadas para a Fas
 ```text
 .
 |-- src
-|   |-- FCG.Api             # API HTTP, composição, OpenAPI e configuração
-|   |-- FCG.Application     # Casos de uso, DTOs e orquestração
-|   |-- FCG.Domain          # Entidades, regras e conceitos de negócio
+|   |-- FCG.Api              # API HTTP, composição, OpenAPI e configuração
+|   |-- FCG.Application      # Casos de uso, DTOs e orquestração
+|   |-- FCG.Domain           # Entidades, regras e conceitos de negócio
 |   |-- FCG.Infrastructure   # Persistência e implementações de infraestrutura
 |   `-- FCG.Migrations       # Assembly dedicado às migrações do EF Core
 |-- tests
-|   `-- FCG.Tests           # Testes unitários e de integração
-|-- docs                    # Documentação do produto e do projeto
-|-- sdd                     # Especificações, issues e checklists de implementação
-`-- FCG.slnx                # Arquivo da solução
+|   `-- FCG.Tests            # Testes unitários e de integração
+|-- docs
+|   `-- diagrams             # Diagramas DDD e fluxos da Fase 1
+`-- FCG.slnx                 # Arquivo da solução
 ```
 
 ## Pré-requisitos
@@ -86,7 +97,7 @@ Se o navegador não abrir automaticamente, acesse uma dessas URLs manualmente en
 
 ## Configuração
 
-A configuração padrão está em [`src/FCG.Api/appsettings.json`](C:/Users/vinic/OneDrive/Documentos/ChatGPT/Pos%20-%20Challenge%201/src/FCG.Api/appsettings.json).
+A configuração padrão está em [`src/FCG.Api/appsettings.json`](src/FCG.Api/appsettings.json).
 
 ### Banco de Dados
 
@@ -109,29 +120,59 @@ As configurações do JWT ficam na seção `Jwt`:
 - `SigningKey`: chave usada para assinar o token.
 - `ExpirationMinutes`: duração do token em minutos.
 
-Em produção, substitua a chave de desenvolvimento por variáveis de ambiente ou por um gerenciador seguro de segredos. Não faça commit de segredos de produção no `appsettings.json`.
+A chave presente no `appsettings.json` é destinada ao ambiente local de desenvolvimento. Em produção, use variáveis de ambiente ou um gerenciador seguro de segredos e não faça commit de credenciais reais.
 
 ### Administrador Inicial
 
-É possível criar um administrador inicial na inicialização definindo `BootstrapAdmin:Enabled` como `true` e informando nome, e-mail e senha. Esse recurso é destinado à configuração local e a ambientes controlados; implantações de produção devem usar um processo aprovado de gerenciamento de segredos.
+É possível criar um administrador inicial durante a inicialização configurando a seção `BootstrapAdmin`:
+
+```json
+"BootstrapAdmin": {
+  "Enabled": true,
+  "Name": "Administrador",
+  "Email": "admin@example.com",
+  "Password": "Admin123!"
+}
+```
+
+Quando `Enabled` está como `false`, nenhum administrador é criado automaticamente. Esse mecanismo é destinado ao desenvolvimento local e a ambientes controlados.
 
 ## Documentação da API
 
-O Swagger UI está disponível em `/swagger` e o documento OpenAPI está disponível em `/swagger/v1/swagger.json`.
+O Swagger UI está disponível em `/swagger` e o documento OpenAPI em `/swagger/v1/swagger.json`.
 
-A documentação da API está escrita para usuários brasileiros, enquanto rotas, propriedades de DTOs, valores de enum e identificadores internos permanecem neutros em relação ao idioma.
+Os endpoints possuem tags, resumos, descrições, contratos de resposta e códigos HTTP documentados no Swagger. As operações protegidas também apresentam o requisito de autenticação JWT.
 
-Endpoints disponíveis:
+### Endpoints disponíveis
 
 | Método | Rota | Acesso | Finalidade |
 | --- | --- | --- | --- |
-| `POST` | `/api/auth/register` | Público | Cadastrar um usuário. |
-| `POST` | `/api/auth/login` | Público | Autenticar e emitir um JWT. |
-| `GET` | `/api/library/me` | Usuário autenticado ou administrador | Retornar a biblioteca do usuário atual. |
+| `POST` | `/api/auth/register` | Público | Cadastrar um novo usuário. |
+| `POST` | `/api/auth/login` | Público | Autenticar um usuário e emitir um JWT. |
+| `GET` | `/api/games` | Usuário ou administrador | Listar os jogos disponíveis no catálogo. |
+| `GET` | `/api/games/{gameId}` | Usuário ou administrador | Consultar os detalhes de um jogo do catálogo. |
+| `GET` | `/api/library/me` | Usuário ou administrador | Consultar a biblioteca da identidade autenticada. |
+| `POST` | `/api/library/me/games/{gameId}` | Usuário ou administrador | Associar um jogo à própria biblioteca após um fluxo externo de compra. |
+| `GET` | `/api/admin/users` | Administrador | Listar usuários cadastrados. |
+| `GET` | `/api/admin/users/{userId}` | Administrador | Consultar um usuário específico. |
+| `PATCH` | `/api/admin/users/{userId}/role` | Administrador | Alterar o papel de um usuário entre `User` e `Administrator`. |
+| `DELETE` | `/api/admin/users/{userId}` | Administrador | Excluir uma conta de usuário. |
+| `POST` | `/api/admin/users/{userId}/games/{gameId}` | Administrador | Associar um jogo à biblioteca de um usuário específico. |
 | `POST` | `/api/admin/games` | Administrador | Cadastrar um jogo no catálogo. |
 | `POST` | `/api/admin/promotions` | Administrador | Cadastrar uma promoção. |
 
-### Exemplo: Cadastro e Login
+### Comportamentos relevantes
+
+- Tentativas de acessar operações protegidas sem JWT retornam `401 Unauthorized`.
+- Um usuário autenticado sem papel administrativo recebe `403 Forbidden` ao acessar operações de administração.
+- Consultas por identificadores inexistentes retornam `404 Not Found` quando aplicável.
+- Um jogo não pode ser associado duas vezes à biblioteca do mesmo usuário; a tentativa duplicada retorna `409 Conflict`.
+- Um administrador não pode alterar o próprio papel nem excluir a própria conta; essas operações retornam `409 Conflict`.
+- O cadastro de usuário rejeita e-mails duplicados e dados que não atendam às regras de validação.
+
+## Exemplos de Uso
+
+### Cadastro e login
 
 ```powershell
 $register = @{
@@ -155,7 +196,32 @@ $tokenResponse = Invoke-RestMethod -Method Post `
   -ContentType "application/json" `
   -Body $login
 
-$headers = @{ Authorization = "Bearer $($tokenResponse.token)" }
+$headers = @{ Authorization = "Bearer $($tokenResponse.accessToken)" }
+```
+
+### Consultar o catálogo
+
+```powershell
+$catalog = Invoke-RestMethod -Method Get `
+  -Uri "http://localhost:5285/api/games" `
+  -Headers $headers
+```
+
+### Associar um jogo à própria biblioteca
+
+A operação abaixo pressupõe que o processo externo de compra já foi concluído:
+
+```powershell
+$gameId = "00000000-0000-0000-0000-000000000000"
+
+Invoke-RestMethod -Method Post `
+  -Uri "http://localhost:5285/api/library/me/games/$gameId" `
+  -Headers $headers
+```
+
+Depois da associação, a biblioteca pode ser consultada com:
+
+```powershell
 Invoke-RestMethod -Method Get `
   -Uri "http://localhost:5285/api/library/me" `
   -Headers $headers
@@ -191,24 +257,43 @@ Execute toda a suíte de testes com:
 dotnet test .\FCG.slnx
 ```
 
-O projeto de testes contém cobertura unitária e de integração para autenticação, autorização, catálogo, promoções, persistência, migrações e contratos da API.
+A suíte contém testes unitários e de integração para, entre outros comportamentos:
+
+- regras de cadastro e segurança de senha;
+- autenticação e emissão de JWT;
+- autorização de usuários e administradores;
+- administração de usuários;
+- cadastro e consulta do catálogo de jogos;
+- cadastro de promoções;
+- associação de jogos às bibliotecas;
+- isolamento da biblioteca entre usuários;
+- persistência e migrações;
+- contratos HTTP e cenários de erro relevantes.
+
+Os testes automatizados são usados como especificações executáveis dos comportamentos da aplicação e como proteção contra regressões. O histórico de commits não deve ser interpretado, isoladamente, como evidência cronológica da ordem em que testes e implementação foram escritos.
 
 ## Arquitetura e Práticas de Engenharia
 
-- Domain-Driven Design com camadas arquiteturais explícitas.
-- Coesão por feature no projeto de Domínio sem eliminar a separação entre camadas.
-- Um único `DbContext` central da aplicação.
+- Domain-Driven Design com separação explícita entre API, Application, Domain, Infrastructure e Migrations.
+- Entidades e regras de negócio concentradas no domínio.
+- Casos de uso e contratos de aplicação separados da camada HTTP.
+- Repositórios usados como fronteiras de persistência.
+- Um único `AppDbContext` central para o modelo relacional.
 - Assembly dedicado para versionamento das migrações.
-- TDD para novos comportamentos de domínio e correções de regressão sempre que aplicável.
-- Valores de máquina estáveis e neutros em relação ao idioma, com textos voltados ao usuário em português brasileiro.
-- Regras de negócio mantidas fora das camadas de apresentação e transporte.
+- Consultas de leitura do catálogo usam `AsNoTracking`.
+- Autorização baseada em policies (`UserOrAdministrator` e `AdministratorOnly`).
+- Middlewares centralizados para logging das requisições e tratamento de exceções.
+- Swagger/OpenAPI para documentação e exploração dos contratos da API.
+- Testes automatizados para regras e fluxos críticos.
 
-## Documentação do Projeto
+## Documentação DDD e Diagramas
 
-- [`docs/ROADMAP.md`](C:/Users/vinic/OneDrive/Documentos/ChatGPT/Pos%20-%20Challenge%201/docs/ROADMAP.md): roadmap do produto e direcionamento das fases.
-- [`sdd/agents/ROADMAP.md`](C:/Users/vinic/OneDrive/Documentos/ChatGPT/Pos%20-%20Challenge%201/sdd/agents/ROADMAP.md): sequência técnica e orientações de SDD.
-- [`sdd/features`](C:/Users/vinic/OneDrive/Documentos/ChatGPT/Pos%20-%20Challenge%201/sdd/features): especificações de features e checklists de tarefas.
-- [`docs`](C:/Users/vinic/OneDrive/Documentos/ChatGPT/Pos%20-%20Challenge%201/docs): diagramas e documentação complementar.
+Os diagramas Draw.io em [`docs/diagrams`](docs/diagrams) documentam os principais comandos, queries, invariantes, políticas de autorização, persistência e resultados dos fluxos implementados.
+
+- [`fluxo-criacao-usuario.drawio`](docs/diagrams/fluxo-criacao-usuario.drawio): cadastro, autenticação e operações administrativas sobre usuários.
+- [`fluxo-criacao-jogo.drawio`](docs/diagrams/fluxo-criacao-jogo.drawio): catálogo, biblioteca, associação de jogos e promoções.
+
+Os arquivos são multipágina e podem ser abertos diretamente no [diagrams.net](https://app.diagrams.net/).
 
 ## Solução de Problemas
 
@@ -218,7 +303,11 @@ Confirme que a API ainda está em execução e acesse `/swagger` manualmente. O 
 
 ### As requisições JWT retornam `401 Unauthorized`
 
-Verifique se o token é válido, não expirou e está sendo enviado no cabeçalho `Authorization` no formato `Bearer {token}`. Os endpoints administrativos também exigem a função de administrador.
+Verifique se o token é válido, não expirou e está sendo enviado no cabeçalho `Authorization` no formato `Bearer {token}`. Os endpoints administrativos também exigem o papel `Administrator`.
+
+### Recebo `403 Forbidden` em um endpoint administrativo
+
+O token é válido, mas a conta autenticada não possui o papel `Administrator`. Use uma conta administrativa ou configure o administrador inicial para desenvolvimento local.
 
 ### As migrações não são encontradas
 
@@ -226,7 +315,11 @@ Use `FCG.Migrations` no argumento `--project` e `FCG.Api` no argumento `--startu
 
 ### O administrador inicial não é criado
 
-Verifique se `BootstrapAdmin:Enabled` está definido como `true` e se nome, e-mail e senha foram configurados. A API não cria um administrador inicial quando o recurso está desabilitado.
+Verifique se `BootstrapAdmin:Enabled` está definido como `true` e se `Name`, `Email` e `Password` foram configurados. A API não cria um administrador inicial quando o recurso está desabilitado.
+
+### A associação de um jogo retorna `409 Conflict`
+
+A combinação usuário+jogo é única. Um jogo que já pertence à biblioteca daquele usuário não pode ser associado novamente.
 
 ## Licença
 
