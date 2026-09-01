@@ -256,6 +256,43 @@ app.MapGet("/api/library/me", [Authorize(Policy = "UserOrAdministrator")] async 
 .Produces(StatusCodes.Status403Forbidden)
 .Produces(StatusCodes.Status500InternalServerError);
 
+app.MapPost("/api/library/me/games/{gameId:guid}", [Authorize(Policy = "UserOrAdministrator")] async (
+    Guid gameId,
+    ClaimsPrincipal user,
+    ILibraryService libraryService,
+    ILogger<Program> logger,
+    CancellationToken cancellationToken) =>
+{
+    var userIdValue = user.FindFirstValue(ClaimTypes.NameIdentifier);
+    if (!Guid.TryParse(userIdValue, out var userId))
+    {
+        logger.LogWarning("Game acquisition association rejected because the authenticated identity did not contain a valid user id claim.");
+        return Results.Unauthorized();
+    }
+
+    var result = await libraryService.AcquireAsync(userId, gameId, cancellationToken);
+
+    return result switch
+    {
+        GameAcquisitionOutcome.Success success => Results.Created("/api/library/me", success.Item),
+        GameAcquisitionOutcome.GameNotFound => Results.NotFound(),
+        GameAcquisitionOutcome.AlreadyAcquired => Results.Problem(
+            detail: "Este jogo já está associado à biblioteca do usuário.",
+            statusCode: StatusCodes.Status409Conflict,
+            title: "Conflict"),
+        _ => throw new InvalidOperationException("Unexpected game acquisition outcome.")
+    };
+})
+.WithTags("Biblioteca")
+.WithSummary("Associar um jogo adquirido à biblioteca do usuário autenticado.")
+.WithDescription("Registra somente a associação entre o usuário autenticado e um jogo do catálogo. Compra, cobrança e pagamento são processados externamente e não fazem parte desta operação.")
+.Produces<LibraryItemResponse>(StatusCodes.Status201Created)
+.Produces(StatusCodes.Status401Unauthorized)
+.Produces(StatusCodes.Status403Forbidden)
+.Produces(StatusCodes.Status404NotFound)
+.ProducesProblem(StatusCodes.Status409Conflict)
+.ProducesProblem(StatusCodes.Status500InternalServerError);
+
 app.MapGet("/api/admin/users", [Authorize(Policy = "AdministratorOnly")] async (
     IUserAdministrationService userAdministrationService,
     CancellationToken cancellationToken) =>
