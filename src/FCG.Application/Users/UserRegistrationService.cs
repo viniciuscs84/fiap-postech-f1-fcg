@@ -2,8 +2,10 @@ using FCG.Domain.Users;
 
 namespace FCG.Application.Users;
 
+/// <summary>Implements the user registration use case.</summary>
 public sealed class UserRegistrationService(IUserRepository repository, IPasswordHasher passwordHasher) : IUserRegistrationService
 {
+    /// <inheritdoc />
     public async Task<RegistrationOutcome> RegisterAsync(RegisterUserCommand command, CancellationToken cancellationToken)
     {
         var validationErrors = RegistrationRules.Validate(command);

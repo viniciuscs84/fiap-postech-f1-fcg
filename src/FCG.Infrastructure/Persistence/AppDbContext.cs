@@ -6,16 +6,23 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FCG.Infrastructure.Persistence;
 
+/// <summary>Central EF Core context for FCG persistence.</summary>
 public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
+    /// <summary>Gets the user accounts set.</summary>
     public DbSet<UserAccount> Users => Set<UserAccount>();
 
+    /// <summary>Gets the catalog games set.</summary>
     public DbSet<Game> Games => Set<Game>();
 
+    /// <summary>Gets the acquired games set.</summary>
     public DbSet<AcquiredGame> AcquiredGames => Set<AcquiredGame>();
 
+    /// <summary>Gets the promotions set.</summary>
     public DbSet<Promotion> Promotions => Set<Promotion>();
 
+    /// <summary>Configures the relational model and constraints.</summary>
+    /// <param name="modelBuilder">EF Core model builder.</param>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<UserAccount>(builder =>

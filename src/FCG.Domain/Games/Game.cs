@@ -1,23 +1,37 @@
 namespace FCG.Domain.Games;
 
+/// <summary>Represents a game available in the catalog.</summary>
 public sealed class Game
 {
     private Game()
     {
     }
 
+    /// <summary>Gets the unique game identifier.</summary>
     public Guid Id { get; private set; }
 
+    /// <summary>Gets the game title.</summary>
     public string Title { get; private set; } = string.Empty;
 
+    /// <summary>Gets the game description.</summary>
     public string Description { get; private set; } = string.Empty;
 
+    /// <summary>Gets the game genre.</summary>
     public string Genre { get; private set; } = string.Empty;
 
+    /// <summary>Gets the identifier of the administrator who created the game.</summary>
     public Guid CreatedByUserId { get; private set; }
 
+    /// <summary>Gets the creation timestamp in UTC.</summary>
     public DateTime CreatedAtUtc { get; private set; }
 
+    /// <summary>Creates a catalog game.</summary>
+    /// <param name="title">Game title.</param>
+    /// <param name="description">Game description.</param>
+    /// <param name="genre">Game genre.</param>
+    /// <param name="createdByUserId">Creating administrator identifier.</param>
+    /// <param name="createdAtUtc">Creation timestamp.</param>
+    /// <returns>A new game.</returns>
     public static Game Create(string title, string description, string genre, Guid createdByUserId, DateTime createdAtUtc)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(title);

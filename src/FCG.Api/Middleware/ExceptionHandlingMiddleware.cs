@@ -5,17 +5,24 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FCG.Api.Middleware;
 
+/// <summary>Converts unhandled exceptions into RFC 7807 problem responses.</summary>
 public sealed class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate next;
     private readonly ILogger<ExceptionHandlingMiddleware> logger;
 
+    /// <summary>Initializes the exception handling middleware.</summary>
+    /// <param name="next">Next middleware in the pipeline.</param>
+    /// <param name="logger">Logger used for exception diagnostics.</param>
     public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
     {
         this.next = next;
         this.logger = logger;
     }
 
+    /// <summary>Processes the request and handles unhandled exceptions.</summary>
+    /// <param name="context">HTTP context being processed.</param>
+    /// <returns>A task representing request processing.</returns>
     public async Task InvokeAsync(HttpContext context)
     {
         try

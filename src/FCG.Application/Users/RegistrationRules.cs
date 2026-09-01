@@ -2,8 +2,10 @@ using System.Net.Mail;
 
 namespace FCG.Application.Users;
 
+/// <summary>Applies validation and normalization rules to user registration.</summary>
 public static class RegistrationRules
 {
+    /// <summary>Validates the registration command and returns field errors.</summary>
     public static IReadOnlyDictionary<string, string[]> Validate(RegisterUserCommand command)
     {
         var errors = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
@@ -26,10 +28,13 @@ public static class RegistrationRules
         return errors.ToDictionary(pair => pair.Key, pair => pair.Value.ToArray(), StringComparer.OrdinalIgnoreCase);
     }
 
+    /// <summary>Normalizes an e-mail for case-insensitive lookup.</summary>
     public static string NormalizeEmail(string email) => email.Trim().ToUpperInvariant();
 
+    /// <summary>Removes surrounding whitespace from a name.</summary>
     public static string NormalizeName(string name) => name.Trim();
 
+    /// <summary>Determines whether an e-mail has a valid basic format.</summary>
     public static bool IsValidEmail(string? email)
     {
         if (string.IsNullOrWhiteSpace(email))
@@ -48,6 +53,7 @@ public static class RegistrationRules
         }
     }
 
+    /// <summary>Determines whether a password meets the Phase 1 security rules.</summary>
     public static bool IsValidPassword(string? password)
     {
         if (string.IsNullOrEmpty(password) || password.Length < 8)

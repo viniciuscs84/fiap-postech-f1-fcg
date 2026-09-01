@@ -2,8 +2,10 @@ using FCG.Domain.Games;
 
 namespace FCG.Application.Games;
 
+/// <summary>Implements the game registration use case.</summary>
 public sealed class GameRegistrationService(IGameRepository repository) : IGameRegistrationService
 {
+    /// <inheritdoc />
     public async Task<GameRegistrationOutcome> RegisterAsync(CreateGameCommand command, Guid createdByUserId, CancellationToken cancellationToken)
     {
         var validationErrors = GameRegistrationRules.Validate(command);

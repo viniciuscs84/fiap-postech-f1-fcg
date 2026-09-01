@@ -8,10 +8,12 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace FCG.Infrastructure.Authentication;
 
+/// <summary>Creates JWT access tokens using the configured signing options.</summary>
 public sealed class JwtTokenService(IOptions<JwtOptions> options) : ITokenService
 {
     private readonly JwtOptions jwtOptions = options.Value;
 
+    /// <inheritdoc />
     public string CreateToken(Guid userId, string email, UserRole role)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey));

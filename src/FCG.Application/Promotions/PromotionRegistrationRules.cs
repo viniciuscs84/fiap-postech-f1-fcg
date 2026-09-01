@@ -1,7 +1,9 @@
 namespace FCG.Application.Promotions;
 
+/// <summary>Applies validation and normalization rules to promotions.</summary>
 public static class PromotionRegistrationRules
 {
+    /// <summary>Validates the promotion creation command.</summary>
     public static IReadOnlyDictionary<string, string[]> Validate(CreatePromotionCommand command)
     {
         var errors = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
@@ -31,8 +33,10 @@ public static class PromotionRegistrationRules
         return errors.ToDictionary(pair => pair.Key, pair => pair.Value.ToArray(), StringComparer.OrdinalIgnoreCase);
     }
 
+    /// <summary>Removes surrounding whitespace from a value.</summary>
     public static string Normalize(string value) => value.Trim();
 
+    /// <summary>Normalizes a promotion code for case-insensitive comparisons.</summary>
     public static string NormalizeCode(string value) => value.Trim().ToUpperInvariant();
 
     private static void AddError(IDictionary<string, List<string>> errors, string field, string message)

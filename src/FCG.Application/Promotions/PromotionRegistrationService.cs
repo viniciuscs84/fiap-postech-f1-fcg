@@ -2,8 +2,10 @@ using FCG.Domain.Promotions;
 
 namespace FCG.Application.Promotions;
 
+/// <summary>Implements the promotion registration use case.</summary>
 public sealed class PromotionRegistrationService(IPromotionRepository repository) : IPromotionRegistrationService
 {
+    /// <inheritdoc />
     public async Task<PromotionRegistrationOutcome> RegisterAsync(CreatePromotionCommand command, Guid createdByUserId, CancellationToken cancellationToken)
     {
         var validationErrors = PromotionRegistrationRules.Validate(command);

@@ -1,7 +1,9 @@
 namespace FCG.Application.Games;
 
+/// <summary>Applies validation and normalization rules to games.</summary>
 public static class GameRegistrationRules
 {
+    /// <summary>Validates the game creation command.</summary>
     public static IReadOnlyDictionary<string, string[]> Validate(CreateGameCommand command)
     {
         var errors = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
@@ -24,6 +26,7 @@ public static class GameRegistrationRules
         return errors.ToDictionary(pair => pair.Key, pair => pair.Value.ToArray(), StringComparer.OrdinalIgnoreCase);
     }
 
+    /// <summary>Removes surrounding whitespace from a value.</summary>
     public static string Normalize(string value) => value.Trim();
 
     private static void AddError(IDictionary<string, List<string>> errors, string field, string message)

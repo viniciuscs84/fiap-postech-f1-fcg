@@ -4,8 +4,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FCG.Infrastructure.Library;
 
+/// <summary>EF Core repository for acquired game libraries.</summary>
 public sealed class EfLibraryRepository(AppDbContext dbContext) : ILibraryRepository
 {
+    /// <inheritdoc />
     public async Task<IReadOnlyList<LibraryItemResponse>> FindByUserIdAsync(Guid userId, CancellationToken cancellationToken)
     {
         return await dbContext.AcquiredGames
