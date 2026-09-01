@@ -46,6 +46,7 @@ builder.Services.AddScoped<IPromotionRepository, EfPromotionRepository>();
 builder.Services.AddSingleton<IPasswordHasher, AspNetCorePasswordHasher>();
 builder.Services.AddSingleton<ITokenService, JwtTokenService>();
 builder.Services.AddScoped<IUserRegistrationService, UserRegistrationService>();
+builder.Services.AddScoped<IUserAdministrationService, UserAdministrationService>();
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IGameRegistrationService, GameRegistrationService>();
 builder.Services.AddScoped<ILibraryService, LibraryService>();
@@ -221,6 +222,114 @@ app.MapGet("/api/library/me", [Authorize(Policy = "UserOrAdministrator")] async 
 .Produces(StatusCodes.Status401Unauthorized)
 .Produces(StatusCodes.Status403Forbidden)
 .Produces(StatusCodes.Status500InternalServerError);
+
+app.MapGet("/api/admin/users", [Authorize(Policy = "AdministratorOnly")] async (
+    IUserAdministrationService userAdministrationService,
+    CancellationToken cancellationToken) =>
+{
+    var users = await userAdministrationService.ListAsync(cancellationToken);
+    return Results.Ok(users);
+})
+.WithTags("Usuários")
+.WithSummary("Listar usuários cadastrados.")
+.WithDescription("Retorna as contas registradas para administração. Esta operação é restrita a administradores.")
+.Produces<IReadOnlyList<AdminUserResponse>>(StatusCodes.Status200OK)
+.Produces(StatusCodes.Status401Unauthorized)
+.Produces(StatusCodes.Status403Forbidden)
+.ProducesProblem(StatusCodes.Status500InternalServerError);
+
+app.MapGet("/api/admin/users/{userId:guid}", [Authorize(Policy = "AdministratorOnly")] async (
+    Guid userId,
+    IUserAdministrationService userAdministrationService,
+    CancellationToken cancellationToken) =>
+{
+    var managedUser = await userAdministrationService.GetByIdAsync(userId, cancellationToken);
+    return managedUser is null ? Results.NotFound() : Results.Ok(managedUser);
+})
+.WithTags("Usuários")
+.WithSummary("Consultar um usuário cadastrado.")
+.WithDescription("Retorna uma conta pelo identificador. Esta operação é restrita a administradores.")
+.Produces<AdminUserResponse>(StatusCodes.Status200OK)
+.Produces(StatusCodes.Status401Unauthorized)
+.Produces(StatusCodes.Status403Forbidden)
+.Produces(StatusCodes.Status404NotFound)
+.ProducesProblem(StatusCodes.Status500InternalServerError);
+
+app.MapPatch("/api/admin/users/{userId:guid}/role", [Authorize(Policy = "AdministratorOnly")] async (
+    Guid userId,
+    UpdateUserRoleCommand command,
+    ClaimsPrincipal user,
+    IUserAdministrationService userAdministrationService,
+    CancellationToken cancellationToken) =>
+{
+    if (!Guid.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var administratorId))
+    {
+        return Results.Unauthorized();
+    }
+
+    if (!Enum.TryParse<UserRole>(command.Role, true, out var role) || !Enum.IsDefined(role))
+    {
+        return Results.ValidationProblem(new Dictionary<string, string[]>
+        {
+            [nameof(command.Role)] = ["O papel deve ser User ou Administrator."]
+        });
+    }
+
+    var result = await userAdministrationService.ChangeRoleAsync(userId, administratorId, role, cancellationToken);
+    return result.Kind switch
+    {
+        UserAdministrationResultKind.Success => Results.Ok(result.User),
+        UserAdministrationResultKind.NotFound => Results.NotFound(),
+        UserAdministrationResultKind.Conflict => Results.Problem(
+            detail: result.Detail,
+            statusCode: StatusCodes.Status409Conflict,
+            title: "Conflict"),
+        _ => throw new InvalidOperationException("Unexpected user administration outcome.")
+    };
+})
+.WithTags("Usuários")
+.WithSummary("Alterar o papel de um usuário.")
+.WithDescription("Promove ou rebaixa uma conta entre User e Administrator. O administrador não pode alterar o próprio papel.")
+.Produces<AdminUserResponse>(StatusCodes.Status200OK)
+.ProducesValidationProblem()
+.Produces(StatusCodes.Status401Unauthorized)
+.Produces(StatusCodes.Status403Forbidden)
+.Produces(StatusCodes.Status404NotFound)
+.ProducesProblem(StatusCodes.Status409Conflict)
+.ProducesProblem(StatusCodes.Status500InternalServerError);
+
+app.MapDelete("/api/admin/users/{userId:guid}", [Authorize(Policy = "AdministratorOnly")] async (
+    Guid userId,
+    ClaimsPrincipal user,
+    IUserAdministrationService userAdministrationService,
+    CancellationToken cancellationToken) =>
+{
+    if (!Guid.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var administratorId))
+    {
+        return Results.Unauthorized();
+    }
+
+    var result = await userAdministrationService.DeleteAsync(userId, administratorId, cancellationToken);
+    return result.Kind switch
+    {
+        UserAdministrationResultKind.Success => Results.NoContent(),
+        UserAdministrationResultKind.NotFound => Results.NotFound(),
+        UserAdministrationResultKind.Conflict => Results.Problem(
+            detail: result.Detail,
+            statusCode: StatusCodes.Status409Conflict,
+            title: "Conflict"),
+        _ => throw new InvalidOperationException("Unexpected user administration outcome.")
+    };
+})
+.WithTags("Usuários")
+.WithSummary("Excluir um usuário.")
+.WithDescription("Remove uma conta cadastrada. O administrador não pode excluir a própria conta.")
+.Produces(StatusCodes.Status204NoContent)
+.Produces(StatusCodes.Status401Unauthorized)
+.Produces(StatusCodes.Status403Forbidden)
+.Produces(StatusCodes.Status404NotFound)
+.ProducesProblem(StatusCodes.Status409Conflict)
+.ProducesProblem(StatusCodes.Status500InternalServerError);
 
 app.MapPost("/api/admin/games", [Authorize(Policy = "AdministratorOnly")] async (
     ClaimsPrincipal user,
