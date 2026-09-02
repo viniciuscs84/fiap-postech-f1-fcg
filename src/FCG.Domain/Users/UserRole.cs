@@ -5,6 +5,6 @@ public enum UserRole
 {
     /// <summary>Standard customer role.</summary>
     User = 0,
-    /// <summary>Administrator role with catalog and promotion management access.</summary>
+    /// <summary>Administrator role with user, catalog and promotion management access.</summary>
     Administrator = 1
 }

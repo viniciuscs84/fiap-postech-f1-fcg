@@ -2,7 +2,6 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using FCG.Domain.Library;
-using FCG.Domain.Users;
 using FCG.Infrastructure.Persistence;
 using FCG.Tests;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +11,81 @@ namespace FCG.Tests.Library;
 
 public sealed class LibraryIntegrationTests
 {
+    [Fact]
+    public async Task User_can_associate_catalog_game_with_own_library()
+    {
+        await using var factory = new TestAppFactory();
+        var client = factory.CreateClient();
+
+        var user = await RegisterUserAsync(client, "Alice", "alice@example.com");
+        var adminToken = await LoginAsync(client, "admin@example.com", "Admin123!");
+        var adminClient = CreateAuthenticatedClient(factory, adminToken);
+        var game = await CreateGameAsync(adminClient, "Game One", "First game", "Action");
+
+        var userToken = await LoginAsync(client, "alice@example.com", "Password1!");
+        var userClient = CreateAuthenticatedClient(factory, userToken);
+
+        var response = await userClient.PostAsync($"/api/library/me/games/{game.Id}", null);
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var payload = await response.Content.ReadFromJsonAsync<LibraryItemResponse>();
+        Assert.Equal(game.Id, payload?.GameId);
+        Assert.Equal("Game One", payload?.Title);
+
+        using var scope = factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var acquisition = await dbContext.AcquiredGames.SingleAsync();
+        Assert.Equal(user.Id, acquisition.UserId);
+        Assert.Equal(game.Id, acquisition.GameId);
+    }
+
+    [Fact]
+    public async Task User_cannot_associate_same_game_twice()
+    {
+        await using var factory = new TestAppFactory();
+        var client = factory.CreateClient();
+
+        await RegisterUserAsync(client, "Alice", "alice@example.com");
+        var adminToken = await LoginAsync(client, "admin@example.com", "Admin123!");
+        var adminClient = CreateAuthenticatedClient(factory, adminToken);
+        var game = await CreateGameAsync(adminClient, "Game One", "First game", "Action");
+
+        var userToken = await LoginAsync(client, "alice@example.com", "Password1!");
+        var userClient = CreateAuthenticatedClient(factory, userToken);
+
+        var firstResponse = await userClient.PostAsync($"/api/library/me/games/{game.Id}", null);
+        var secondResponse = await userClient.PostAsync($"/api/library/me/games/{game.Id}", null);
+
+        Assert.Equal(HttpStatusCode.Created, firstResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, secondResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task Unknown_game_cannot_be_associated_with_library()
+    {
+        await using var factory = new TestAppFactory();
+        var client = factory.CreateClient();
+
+        await RegisterUserAsync(client, "Alice", "alice@example.com");
+        var userToken = await LoginAsync(client, "alice@example.com", "Password1!");
+        var userClient = CreateAuthenticatedClient(factory, userToken);
+
+        var response = await userClient.PostAsync($"/api/library/me/games/{Guid.NewGuid()}", null);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Missing_token_is_rejected_for_game_acquisition_association()
+    {
+        await using var factory = new TestAppFactory();
+        var client = factory.CreateClient();
+
+        var response = await client.PostAsync($"/api/library/me/games/{Guid.NewGuid()}", null);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
     [Fact]
     public async Task User_can_retrieve_only_owned_games()
     {
@@ -86,7 +160,7 @@ public sealed class LibraryIntegrationTests
         var client = factory.CreateClient();
 
         var alice = await RegisterUserAsync(client, "Alice", "alice@example.com");
-        var bob = await RegisterUserAsync(client, "Bob", "bob@example.com");
+        await RegisterUserAsync(client, "Bob", "bob@example.com");
 
         var adminToken = await LoginAsync(client, "admin@example.com", "Admin123!");
         var adminClient = CreateAuthenticatedClient(factory, adminToken);

@@ -17,12 +17,10 @@ using FCG.Infrastructure.Promotions;
 using FCG.Infrastructure.Persistence;
 using FCG.Infrastructure.Security;
 using FCG.Infrastructure.Users;
-using FCG.Migrations;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Security.Claims;
@@ -30,13 +28,11 @@ using System.Security.Claims;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
-builder.Services.Configure<BootstrapAdminOptions>(builder.Configuration.GetSection(BootstrapAdminOptions.SectionName));
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=fcg.db";
-    options.UseSqlite(connectionString, sqlite =>
-        sqlite.MigrationsAssembly(typeof(MigrationAssemblyMarker).Assembly.GetName().Name));
+    options.UseSqlite(connectionString);
 });
 
 builder.Services.AddScoped<IUserRepository, EfUserRepository>();
@@ -46,8 +42,10 @@ builder.Services.AddScoped<IPromotionRepository, EfPromotionRepository>();
 builder.Services.AddSingleton<IPasswordHasher, AspNetCorePasswordHasher>();
 builder.Services.AddSingleton<ITokenService, JwtTokenService>();
 builder.Services.AddScoped<IUserRegistrationService, UserRegistrationService>();
+builder.Services.AddScoped<IUserAdministrationService, UserAdministrationService>();
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IGameRegistrationService, GameRegistrationService>();
+builder.Services.AddScoped<IGameCatalogService, GameCatalogService>();
 builder.Services.AddScoped<ILibraryService, LibraryService>();
 builder.Services.AddScoped<IPromotionRegistrationService, PromotionRegistrationService>();
 
@@ -120,32 +118,6 @@ app.UseSwaggerUI(options =>
     options.DocumentTitle = "FCG API - Swagger";
 });
 
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await dbContext.Database.MigrateAsync();
-
-    var bootstrapAdmin = scope.ServiceProvider.GetRequiredService<IOptions<BootstrapAdminOptions>>().Value;
-    if (bootstrapAdmin.Enabled && !string.IsNullOrWhiteSpace(bootstrapAdmin.Email) && !string.IsNullOrWhiteSpace(bootstrapAdmin.Password))
-    {
-        var normalizedEmail = RegistrationRules.NormalizeEmail(bootstrapAdmin.Email);
-        var existingAdmin = await dbContext.Users.SingleOrDefaultAsync(user => user.NormalizedEmail == normalizedEmail && user.Role == UserRole.Administrator);
-        if (existingAdmin is null)
-        {
-            var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
-            var admin = UserAccount.Register(
-                RegistrationRules.NormalizeName(bootstrapAdmin.Name),
-                bootstrapAdmin.Email,
-                passwordHasher.HashPassword(bootstrapAdmin.Password),
-                UserRole.Administrator,
-                DateTime.UtcNow);
-
-            dbContext.Users.Add(admin);
-            await dbContext.SaveChangesAsync();
-        }
-    }
-}
-
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -158,7 +130,7 @@ app.MapPost("/api/auth/register", async (
 
     return result switch
     {
-        RegistrationOutcome.Success success => Results.Created($"/api/users/{success.User.Id}", success.User),
+        RegistrationOutcome.Success success => Results.Created($"/api/admin/users/{success.User.Id}", success.User),
         RegistrationOutcome.ValidationFailure failure => Results.ValidationProblem(
             failure.Errors.ToDictionary(pair => pair.Key, pair => pair.Value)),
         RegistrationOutcome.Conflict => Results.Problem(
@@ -197,6 +169,38 @@ app.MapPost("/api/auth/login", async (
 .Produces(StatusCodes.Status401Unauthorized)
 .Produces(StatusCodes.Status500InternalServerError);
 
+app.MapGet("/api/games", [Authorize(Policy = "UserOrAdministrator")] async (
+    IGameCatalogService gameCatalogService,
+    CancellationToken cancellationToken) =>
+{
+    var games = await gameCatalogService.ListAsync(cancellationToken);
+    return Results.Ok(games);
+})
+.WithTags("Jogos")
+.WithSummary("Consultar o catálogo de jogos.")
+.WithDescription("Retorna os jogos disponíveis no catálogo para usuários autenticados e administradores.")
+.Produces<IReadOnlyList<GameCatalogItemResponse>>(StatusCodes.Status200OK)
+.Produces(StatusCodes.Status401Unauthorized)
+.Produces(StatusCodes.Status403Forbidden)
+.ProducesProblem(StatusCodes.Status500InternalServerError);
+
+app.MapGet("/api/games/{gameId:guid}", [Authorize(Policy = "UserOrAdministrator")] async (
+    Guid gameId,
+    IGameCatalogService gameCatalogService,
+    CancellationToken cancellationToken) =>
+{
+    var game = await gameCatalogService.GetByIdAsync(gameId, cancellationToken);
+    return game is null ? Results.NotFound() : Results.Ok(game);
+})
+.WithTags("Jogos")
+.WithSummary("Consultar um jogo do catálogo.")
+.WithDescription("Retorna os detalhes de um jogo do catálogo pelo identificador.")
+.Produces<GameCatalogItemResponse>(StatusCodes.Status200OK)
+.Produces(StatusCodes.Status401Unauthorized)
+.Produces(StatusCodes.Status403Forbidden)
+.Produces(StatusCodes.Status404NotFound)
+.ProducesProblem(StatusCodes.Status500InternalServerError);
+
 app.MapGet("/api/library/me", [Authorize(Policy = "UserOrAdministrator")] async (
     ClaimsPrincipal user,
     ILibraryService libraryService,
@@ -222,6 +226,186 @@ app.MapGet("/api/library/me", [Authorize(Policy = "UserOrAdministrator")] async 
 .Produces(StatusCodes.Status403Forbidden)
 .Produces(StatusCodes.Status500InternalServerError);
 
+app.MapPost("/api/library/me/games/{gameId:guid}", [Authorize(Policy = "UserOrAdministrator")] async (
+    Guid gameId,
+    ClaimsPrincipal user,
+    ILibraryService libraryService,
+    ILogger<Program> logger,
+    CancellationToken cancellationToken) =>
+{
+    var userIdValue = user.FindFirstValue(ClaimTypes.NameIdentifier);
+    if (!Guid.TryParse(userIdValue, out var userId))
+    {
+        logger.LogWarning("Game acquisition association rejected because the authenticated identity did not contain a valid user id claim.");
+        return Results.Unauthorized();
+    }
+
+    var result = await libraryService.AcquireAsync(userId, gameId, cancellationToken);
+
+    return result switch
+    {
+        GameAcquisitionOutcome.Success success => Results.Created("/api/library/me", success.Item),
+        GameAcquisitionOutcome.GameNotFound => Results.NotFound(),
+        GameAcquisitionOutcome.AlreadyAcquired => Results.Problem(
+            detail: "Este jogo já está associado à biblioteca do usuário.",
+            statusCode: StatusCodes.Status409Conflict,
+            title: "Conflict"),
+        _ => throw new InvalidOperationException("Unexpected game acquisition outcome.")
+    };
+})
+.WithTags("Biblioteca")
+.WithSummary("Associar um jogo adquirido à biblioteca do usuário autenticado.")
+.WithDescription("Registra somente a associação entre o usuário autenticado e um jogo do catálogo. Compra, cobrança e pagamento são processados externamente e não fazem parte desta operação.")
+.Produces<LibraryItemResponse>(StatusCodes.Status201Created)
+.Produces(StatusCodes.Status401Unauthorized)
+.Produces(StatusCodes.Status403Forbidden)
+.Produces(StatusCodes.Status404NotFound)
+.ProducesProblem(StatusCodes.Status409Conflict)
+.ProducesProblem(StatusCodes.Status500InternalServerError);
+
+app.MapGet("/api/admin/users", [Authorize(Policy = "AdministratorOnly")] async (
+    IUserAdministrationService userAdministrationService,
+    CancellationToken cancellationToken) =>
+{
+    var users = await userAdministrationService.ListAsync(cancellationToken);
+    return Results.Ok(users);
+})
+.WithTags("Usuários")
+.WithSummary("Listar usuários cadastrados.")
+.WithDescription("Retorna as contas registradas para administração. Esta operação é restrita a administradores.")
+.Produces<IReadOnlyList<AdminUserResponse>>(StatusCodes.Status200OK)
+.Produces(StatusCodes.Status401Unauthorized)
+.Produces(StatusCodes.Status403Forbidden)
+.ProducesProblem(StatusCodes.Status500InternalServerError);
+
+app.MapGet("/api/admin/users/{userId:guid}", [Authorize(Policy = "AdministratorOnly")] async (
+    Guid userId,
+    IUserAdministrationService userAdministrationService,
+    CancellationToken cancellationToken) =>
+{
+    var managedUser = await userAdministrationService.GetByIdAsync(userId, cancellationToken);
+    return managedUser is null ? Results.NotFound() : Results.Ok(managedUser);
+})
+.WithTags("Usuários")
+.WithSummary("Consultar um usuário cadastrado.")
+.WithDescription("Retorna uma conta pelo identificador. Esta operação é restrita a administradores.")
+.Produces<AdminUserResponse>(StatusCodes.Status200OK)
+.Produces(StatusCodes.Status401Unauthorized)
+.Produces(StatusCodes.Status403Forbidden)
+.Produces(StatusCodes.Status404NotFound)
+.ProducesProblem(StatusCodes.Status500InternalServerError);
+
+app.MapPost("/api/admin/users/{userId:guid}/games/{gameId:guid}", [Authorize(Policy = "AdministratorOnly")] async (
+    Guid userId,
+    Guid gameId,
+    IUserAdministrationService userAdministrationService,
+    ILibraryService libraryService,
+    CancellationToken cancellationToken) =>
+{
+    var managedUser = await userAdministrationService.GetByIdAsync(userId, cancellationToken);
+    if (managedUser is null)
+    {
+        return Results.NotFound();
+    }
+
+    var result = await libraryService.AcquireAsync(userId, gameId, cancellationToken);
+    return result switch
+    {
+        GameAcquisitionOutcome.Success success => Results.Created($"/api/admin/users/{userId}", success.Item),
+        GameAcquisitionOutcome.GameNotFound => Results.NotFound(),
+        GameAcquisitionOutcome.AlreadyAcquired => Results.Problem(
+            detail: "Este jogo já está associado à biblioteca do usuário.",
+            statusCode: StatusCodes.Status409Conflict,
+            title: "Conflict"),
+        _ => throw new InvalidOperationException("Unexpected game acquisition outcome.")
+    };
+})
+.WithTags("Usuários")
+.WithSummary("Associar um jogo à biblioteca de um usuário.")
+.WithDescription("Permite que um administrador registre a concessão de um jogo a um usuário específico após a conclusão de um fluxo externo de compra ou pagamento. Esta operação registra somente a associação usuário-jogo.")
+.Produces<LibraryItemResponse>(StatusCodes.Status201Created)
+.Produces(StatusCodes.Status401Unauthorized)
+.Produces(StatusCodes.Status403Forbidden)
+.Produces(StatusCodes.Status404NotFound)
+.ProducesProblem(StatusCodes.Status409Conflict)
+.ProducesProblem(StatusCodes.Status500InternalServerError);
+
+app.MapPatch("/api/admin/users/{userId:guid}/role", [Authorize(Policy = "AdministratorOnly")] async (
+    Guid userId,
+    UpdateUserRoleCommand command,
+    ClaimsPrincipal user,
+    IUserAdministrationService userAdministrationService,
+    CancellationToken cancellationToken) =>
+{
+    if (!Guid.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var administratorId))
+    {
+        return Results.Unauthorized();
+    }
+
+    if (!Enum.TryParse<UserRole>(command.Role, true, out var role) || !Enum.IsDefined(role))
+    {
+        return Results.ValidationProblem(new Dictionary<string, string[]>
+        {
+            [nameof(command.Role)] = ["O papel deve ser User ou Administrator."]
+        });
+    }
+
+    var result = await userAdministrationService.ChangeRoleAsync(userId, administratorId, role, cancellationToken);
+    return result.Kind switch
+    {
+        UserAdministrationResultKind.Success => Results.Ok(result.User),
+        UserAdministrationResultKind.NotFound => Results.NotFound(),
+        UserAdministrationResultKind.Conflict => Results.Problem(
+            detail: result.Detail,
+            statusCode: StatusCodes.Status409Conflict,
+            title: "Conflict"),
+        _ => throw new InvalidOperationException("Unexpected user administration outcome.")
+    };
+})
+.WithTags("Usuários")
+.WithSummary("Alterar o papel de um usuário.")
+.WithDescription("Promove ou rebaixa uma conta entre User e Administrator. O administrador não pode alterar o próprio papel.")
+.Produces<AdminUserResponse>(StatusCodes.Status200OK)
+.ProducesValidationProblem()
+.Produces(StatusCodes.Status401Unauthorized)
+.Produces(StatusCodes.Status403Forbidden)
+.Produces(StatusCodes.Status404NotFound)
+.ProducesProblem(StatusCodes.Status409Conflict)
+.ProducesProblem(StatusCodes.Status500InternalServerError);
+
+app.MapDelete("/api/admin/users/{userId:guid}", [Authorize(Policy = "AdministratorOnly")] async (
+    Guid userId,
+    ClaimsPrincipal user,
+    IUserAdministrationService userAdministrationService,
+    CancellationToken cancellationToken) =>
+{
+    if (!Guid.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var administratorId))
+    {
+        return Results.Unauthorized();
+    }
+
+    var result = await userAdministrationService.DeleteAsync(userId, administratorId, cancellationToken);
+    return result.Kind switch
+    {
+        UserAdministrationResultKind.Success => Results.NoContent(),
+        UserAdministrationResultKind.NotFound => Results.NotFound(),
+        UserAdministrationResultKind.Conflict => Results.Problem(
+            detail: result.Detail,
+            statusCode: StatusCodes.Status409Conflict,
+            title: "Conflict"),
+        _ => throw new InvalidOperationException("Unexpected user administration outcome.")
+    };
+})
+.WithTags("Usuários")
+.WithSummary("Excluir um usuário.")
+.WithDescription("Remove uma conta cadastrada. O administrador não pode excluir a própria conta.")
+.Produces(StatusCodes.Status204NoContent)
+.Produces(StatusCodes.Status401Unauthorized)
+.Produces(StatusCodes.Status403Forbidden)
+.Produces(StatusCodes.Status404NotFound)
+.ProducesProblem(StatusCodes.Status409Conflict)
+.ProducesProblem(StatusCodes.Status500InternalServerError);
+
 app.MapPost("/api/admin/games", [Authorize(Policy = "AdministratorOnly")] async (
     ClaimsPrincipal user,
     CreateGameCommand command,
@@ -238,7 +422,7 @@ app.MapPost("/api/admin/games", [Authorize(Policy = "AdministratorOnly")] async 
 
     return result switch
     {
-        GameRegistrationOutcome.Success success => Results.Created($"/api/admin/games/{success.Game.Id}", success.Game),
+        GameRegistrationOutcome.Success success => Results.Created($"/api/games/{success.Game.Id}", success.Game),
         GameRegistrationOutcome.ValidationFailure failure => Results.ValidationProblem(
             failure.Errors.ToDictionary(pair => pair.Key, pair => pair.Value)),
         _ => throw new InvalidOperationException("Unexpected game registration outcome.")
@@ -271,7 +455,9 @@ app.MapPost("/api/admin/promotions", [Authorize(Policy = "AdministratorOnly")] a
 
     return result switch
     {
-        PromotionRegistrationOutcome.Success success => Results.Created($"/api/admin/promotions/{success.Promotion.Id}", success.Promotion),
+        PromotionRegistrationOutcome.Success success => Results.Json(
+            success.Promotion,
+            statusCode: StatusCodes.Status201Created),
         PromotionRegistrationOutcome.ValidationFailure failure => Results.ValidationProblem(
             failure.Errors.ToDictionary(pair => pair.Key, pair => pair.Value)),
         PromotionRegistrationOutcome.Conflict => Results.Problem(

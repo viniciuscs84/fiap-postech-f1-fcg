@@ -1,4 +1,5 @@
 using FCG.Application.Library;
+using FCG.Domain.Library;
 using FCG.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,5 +22,25 @@ public sealed class EfLibraryRepository(AppDbContext dbContext) : ILibraryReposi
                 acquisition.Game.Genre,
                 acquisition.AcquiredAtUtc))
             .ToListAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task<bool> ExistsAsync(Guid userId, Guid gameId, CancellationToken cancellationToken)
+    {
+        return dbContext.AcquiredGames
+            .AsNoTracking()
+            .AnyAsync(acquisition => acquisition.UserId == userId && acquisition.GameId == gameId, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task AddAsync(AcquiredGame acquisition, CancellationToken cancellationToken)
+    {
+        return dbContext.AcquiredGames.AddAsync(acquisition, cancellationToken).AsTask();
+    }
+
+    /// <inheritdoc />
+    public Task<int> SaveChangesAsync(CancellationToken cancellationToken)
+    {
+        return dbContext.SaveChangesAsync(cancellationToken);
     }
 }

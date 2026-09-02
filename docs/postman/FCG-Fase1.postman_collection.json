@@ -1,0 +1,304 @@
+{
+  "info": {
+    "_postman_id": "1d4f2d5b-9b7f-4bfa-b8fd-f8cc0ef01001",
+    "name": "FIAP Cloud Games - Fase 1",
+    "description": "Coleção completa da API FCG Fase 1 organizada em uma sequência demonstrativa executável. Os scripts armazenam tokens e identificadores exclusivamente no ambiente selecionado. São criados dois jogos diferentes para demonstrar, sem conflito, a associação pelo próprio usuário e a concessão administrativa.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Autenticação",
+      "item": [
+        {
+          "name": "Cadastrar usuário",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{nomeUsuario}}\",\n  \"email\": \"{{emailUsuario}}\",\n  \"password\": \"{{senhaUsuario}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{urlBase}}/api/auth/register",
+            "description": "Cria o usuário comum usado no restante da demonstração."
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+                "if (pm.response.code === 201) {",
+                "  const json = pm.response.json();",
+                "  if (json.id) pm.environment.set('idUsuario', json.id);",
+                "}"
+              ],
+              "type": "text/javascript"
+            }
+          }]
+        },
+        {
+          "name": "Autenticar usuário",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{emailUsuario}}\",\n  \"password\": \"{{senhaUsuario}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{urlBase}}/api/auth/login"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                "if (pm.response.code === 200) {",
+                "  const json = pm.response.json();",
+                "  pm.environment.set('tokenUsuario', json.accessToken);",
+                "}"
+              ],
+              "type": "text/javascript"
+            }
+          }]
+        },
+        {
+          "name": "Autenticar administrador",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{emailAdministrador}}\",\n  \"password\": \"{{senhaAdministrador}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{urlBase}}/api/auth/login",
+            "description": "Autentica a conta administrativa criada pela migration de seed."
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                "if (pm.response.code === 200) {",
+                "  const json = pm.response.json();",
+                "  pm.environment.set('tokenAdministrador', json.accessToken);",
+                "}"
+              ],
+              "type": "text/javascript"
+            }
+          }]
+        }
+      ]
+    },
+    {
+      "name": "2. Administração de Jogos",
+      "item": [
+        {
+          "name": "Cadastrar jogo para compra do usuário",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{tokenAdministrador}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Halo Infinite\",\n  \"description\": \"Jogo de tiro em primeira pessoa de ficção científica\",\n  \"genre\": \"Tiro\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{urlBase}}/api/admin/games"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+                "if (pm.response.code === 201) {",
+                "  const json = pm.response.json();",
+                "  if (json.id) pm.environment.set('idJogoCompraUsuario', json.id);",
+                "}"
+              ],
+              "type": "text/javascript"
+            }
+          }]
+        },
+        {
+          "name": "Cadastrar jogo para concessão administrativa",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{tokenAdministrador}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Forza Horizon 5\",\n  \"description\": \"Jogo de corrida em mundo aberto\",\n  \"genre\": \"Corrida\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{urlBase}}/api/admin/games"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+                "if (pm.response.code === 201) {",
+                "  const json = pm.response.json();",
+                "  if (json.id) pm.environment.set('idJogoConcessaoAdministrador', json.id);",
+                "}"
+              ],
+              "type": "text/javascript"
+            }
+          }]
+        }
+      ]
+    },
+    {
+      "name": "3. Catálogo de Jogos",
+      "item": [
+        {
+          "name": "Listar jogos",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{tokenUsuario}}", "type": "string" }] },
+            "method": "GET",
+            "header": [],
+            "url": "{{urlBase}}/api/games"
+          }
+        },
+        {
+          "name": "Consultar jogo por ID",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{tokenUsuario}}", "type": "string" }] },
+            "method": "GET",
+            "header": [],
+            "url": "{{urlBase}}/api/games/{{idJogoCompraUsuario}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Biblioteca de Jogos",
+      "item": [
+        {
+          "name": "Associar jogo à minha biblioteca",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{tokenUsuario}}", "type": "string" }] },
+            "method": "POST",
+            "header": [],
+            "url": "{{urlBase}}/api/library/me/games/{{idJogoCompraUsuario}}",
+            "description": "Registra a associação do primeiro jogo ao usuário autenticado. Compra, cobrança e pagamento são externos."
+          }
+        },
+        {
+          "name": "Consultar minha biblioteca",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{tokenUsuario}}", "type": "string" }] },
+            "method": "GET",
+            "header": [],
+            "url": "{{urlBase}}/api/library/me"
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Administração de Usuários",
+      "item": [
+        {
+          "name": "Listar usuários",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{tokenAdministrador}}", "type": "string" }] },
+            "method": "GET",
+            "header": [],
+            "url": "{{urlBase}}/api/admin/users"
+          }
+        },
+        {
+          "name": "Consultar usuário por ID",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{tokenAdministrador}}", "type": "string" }] },
+            "method": "GET",
+            "header": [],
+            "url": "{{urlBase}}/api/admin/users/{{idUsuario}}"
+          }
+        },
+        {
+          "name": "Associar jogo a um usuário",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{tokenAdministrador}}", "type": "string" }] },
+            "method": "POST",
+            "header": [],
+            "url": "{{urlBase}}/api/admin/users/{{idUsuario}}/games/{{idJogoConcessaoAdministrador}}",
+            "description": "Concede o segundo jogo ao usuário, evitando conflito com o jogo associado pelo próprio usuário."
+          }
+        },
+        {
+          "name": "Alterar papel do usuário",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{tokenAdministrador}}", "type": "string" }] },
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"Administrator\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{urlBase}}/api/admin/users/{{idUsuario}}/role"
+          }
+        },
+        {
+          "name": "Restaurar papel do usuário",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{tokenAdministrador}}", "type": "string" }] },
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"User\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{urlBase}}/api/admin/users/{{idUsuario}}/role"
+          }
+        },
+        {
+          "name": "Excluir usuário",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{tokenAdministrador}}", "type": "string" }] },
+            "method": "DELETE",
+            "header": [],
+            "url": "{{urlBase}}/api/admin/users/{{idUsuario}}",
+            "description": "Operação destrutiva. Execute somente ao final da demonstração."
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Administração de Promoções",
+      "item": [
+        {
+          "name": "Cadastrar promoção",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{tokenAdministrador}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Semana Gamer\",\n  \"code\": \"GAMER25\",\n  \"discountPercentage\": 25,\n  \"startsAtUtc\": \"2026-09-01T00:00:00Z\",\n  \"endsAtUtc\": \"2026-09-08T00:00:00Z\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{urlBase}}/api/admin/promotions"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+                "if (pm.response.code === 201) {",
+                "  const json = pm.response.json();",
+                "  if (json.id) pm.environment.set('idPromocao', json.id);",
+                "}"
+              ],
+              "type": "text/javascript"
+            }
+          }]
+        }
+      ]
+    }
+  ]
+}

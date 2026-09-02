@@ -1,44 +1,124 @@
-<mxfile host="app.diagrams.net" modified="2026-09-01T00:00:00.000Z" agent="Codex" version="24.7.8">
-  <diagram id="game-creation-flow" name="Fluxo de Criação de Jogo">
-    <mxGraphModel dx="1280" dy="720" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="900" math="0" shadow="0">
+<mxfile host="app.diagrams.net" modified="2026-09-01T11:20:00.000Z" agent="ChatGPT" version="24.7.8">
+  <diagram id="game-catalog-flow" name="Jogos - Catálogo">
+    <mxGraphModel dx="1600" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1000" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="2" value="Administrador" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1">
-          <mxGeometry x="60" y="190" width="40" height="80" as="geometry" />
-        </mxCell>
-        <mxCell id="3" value="Comando: cadastrar jogo" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
-          <mxGeometry x="170" y="180" width="170" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="4" value="Autorizar administrador" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
-          <mxGeometry x="380" y="180" width="170" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="5" value="Validar título, descrição e gênero" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
-          <mxGeometry x="580" y="180" width="200" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="6" value="Invariante: identificador do jogo é único" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
-          <mxGeometry x="820" y="180" width="210" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="7" value="Agregado de Jogo&#xa;- título&#xa;- descrição&#xa;- gênero&#xa;- status ativo" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
-          <mxGeometry x="1060" y="150" width="210" height="120" as="geometry" />
-        </mxCell>
-        <mxCell id="8" value="Persistir jogo" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
-          <mxGeometry x="1300" y="180" width="140" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="9" value="Evento JogoCriado" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
-          <mxGeometry x="1470" y="180" width="140" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="10" value="Política: manter cadastro do catálogo separado da propriedade" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
-          <mxGeometry x="1040" y="290" width="250" height="50" as="geometry" />
-        </mxCell>
-        <mxCell id="11" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="2" target="3"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="12" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="3" target="4"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="13" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="4" target="5"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="14" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="5" target="6"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="15" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="6" target="7"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="16" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="7" target="8"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="17" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="8" target="9"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="18" style="endArrow=block;html=1;rounded=0;dashed=1;" edge="1" parent="1" source="7" target="10"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="title" value="Catálogo de jogos" style="text;html=1;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="560" y="30" width="620" height="40" as="geometry" /></mxCell>
+        <mxCell id="admin" value="Administrador" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1"><mxGeometry x="50" y="205" width="50" height="80" as="geometry" /></mxCell>
+        <mxCell id="create" value="POST /api/admin/games&#xa;Comando: cadastrar jogo" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="140" y="190" width="220" height="70" as="geometry" /></mxCell>
+        <mxCell id="auth" value="Policy AdministratorOnly" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1"><mxGeometry x="400" y="190" width="190" height="70" as="geometry" /></mxCell>
+        <mxCell id="validate" value="Validar título, descrição e gênero" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1"><mxGeometry x="630" y="190" width="220" height="70" as="geometry" /></mxCell>
+        <mxCell id="aggregate" value="Agregado Game&#xa;- Id único&#xa;- título&#xa;- descrição&#xa;- gênero&#xa;- CreatedByUserId" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1"><mxGeometry x="890" y="165" width="220" height="120" as="geometry" /></mxCell>
+        <mxCell id="persist" value="Persistir jogo no catálogo" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="1150" y="190" width="200" height="70" as="geometry" /></mxCell>
+        <mxCell id="created" value="201 Created&#xa;400 se inválido&#xa;401/403 se não autorizado" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1"><mxGeometry x="1390" y="180" width="220" height="90" as="geometry" /></mxCell>
+
+        <mxCell id="user" value="Usuário / Administrador" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1"><mxGeometry x="50" y="510" width="50" height="80" as="geometry" /></mxCell>
+        <mxCell id="list" value="GET /api/games&#xa;Query: consultar catálogo" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="150" y="430" width="220" height="70" as="geometry" /></mxCell>
+        <mxCell id="list-auth" value="Policy UserOrAdministrator" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1"><mxGeometry x="410" y="430" width="210" height="70" as="geometry" /></mxCell>
+        <mxCell id="list-read" value="Consulta somente leitura&#xa;AsNoTracking&#xa;ordenar por título" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1"><mxGeometry x="660" y="415" width="230" height="100" as="geometry" /></mxCell>
+        <mxCell id="list-result" value="200 OK&#xa;lista do catálogo" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1"><mxGeometry x="930" y="430" width="190" height="70" as="geometry" /></mxCell>
+
+        <mxCell id="get" value="GET /api/games/{gameId}&#xa;Query: consultar jogo" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="150" y="650" width="230" height="70" as="geometry" /></mxCell>
+        <mxCell id="get-auth" value="Policy UserOrAdministrator" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1"><mxGeometry x="420" y="650" width="210" height="70" as="geometry" /></mxCell>
+        <mxCell id="get-read" value="Localizar jogo por Id&#xa;consulta somente leitura" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1"><mxGeometry x="670" y="650" width="220" height="70" as="geometry" /></mxCell>
+        <mxCell id="get-result" value="200 OK&#xa;404 se inexistente" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1"><mxGeometry x="930" y="650" width="190" height="70" as="geometry" /></mxCell>
+
+        <mxCell id="e1" style="endArrow=block;html=1;" edge="1" parent="1" source="admin" target="create"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e2" style="endArrow=block;html=1;" edge="1" parent="1" source="create" target="auth"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e3" style="endArrow=block;html=1;" edge="1" parent="1" source="auth" target="validate"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e4" style="endArrow=block;html=1;" edge="1" parent="1" source="validate" target="aggregate"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e5" style="endArrow=block;html=1;" edge="1" parent="1" source="aggregate" target="persist"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e6" style="endArrow=block;html=1;" edge="1" parent="1" source="persist" target="created"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e7" style="endArrow=block;html=1;" edge="1" parent="1" source="user" target="list"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e8" style="endArrow=block;html=1;" edge="1" parent="1" source="list" target="list-auth"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e9" style="endArrow=block;html=1;" edge="1" parent="1" source="list-auth" target="list-read"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e10" style="endArrow=block;html=1;" edge="1" parent="1" source="list-read" target="list-result"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e11" style="endArrow=block;html=1;" edge="1" parent="1" source="user" target="get"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e12" style="endArrow=block;html=1;" edge="1" parent="1" source="get" target="get-auth"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e13" style="endArrow=block;html=1;" edge="1" parent="1" source="get-auth" target="get-read"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e14" style="endArrow=block;html=1;" edge="1" parent="1" source="get-read" target="get-result"><mxGeometry relative="1" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram id="library-flow" name="Biblioteca - Aquisição e Consulta">
+    <mxGraphModel dx="1600" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1150" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Biblioteca de jogos adquiridos" style="text;html=1;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="520" y="30" width="700" height="40" as="geometry" /></mxCell>
+        <mxCell id="external" value="Compra/pagamento externo" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;dashed=1;" vertex="1" parent="1"><mxGeometry x="50" y="130" width="220" height="60" as="geometry" /></mxCell>
+        <mxCell id="boundary" value="FCG não processa cobrança nem pagamento. A API registra somente a concessão do jogo à biblioteca após confirmação externa." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="320" y="120" width="760" height="80" as="geometry" /></mxCell>
+
+        <mxCell id="user" value="Usuário autenticado" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1"><mxGeometry x="50" y="330" width="50" height="80" as="geometry" /></mxCell>
+        <mxCell id="self-acquire" value="POST /api/library/me/games/{gameId}&#xa;Comando: associar jogo à própria biblioteca" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="150" y="310" width="280" height="90" as="geometry" /></mxCell>
+        <mxCell id="self-auth" value="Policy UserOrAdministrator&#xa;UserId vem exclusivamente do JWT" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1"><mxGeometry x="480" y="310" width="250" height="90" as="geometry" /></mxCell>
+        <mxCell id="game-check" value="Validar jogo no catálogo" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1"><mxGeometry x="780" y="320" width="200" height="70" as="geometry" /></mxCell>
+        <mxCell id="duplicate-check" value="Invariante: usuário+jogo é único&#xa;verificar aquisição existente" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1"><mxGeometry x="1030" y="310" width="240" height="90" as="geometry" /></mxCell>
+        <mxCell id="acquired" value="Criar AcquiredGame&#xa;UserId + GameId + AcquiredAtUtc&#xa;e persistir" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1"><mxGeometry x="1320" y="300" width="240" height="110" as="geometry" /></mxCell>
+        <mxCell id="self-result" value="201 Created&#xa;404 jogo inexistente&#xa;409 já adquirido" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1"><mxGeometry x="1600" y="310" width="170" height="90" as="geometry" /></mxCell>
+
+        <mxCell id="admin" value="Administrador" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1"><mxGeometry x="50" y="610" width="50" height="80" as="geometry" /></mxCell>
+        <mxCell id="admin-acquire" value="POST /api/admin/users/{userId}/games/{gameId}&#xa;Comando: conceder jogo a usuário" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="150" y="590" width="300" height="90" as="geometry" /></mxCell>
+        <mxCell id="admin-auth" value="Policy AdministratorOnly" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1"><mxGeometry x="500" y="600" width="200" height="70" as="geometry" /></mxCell>
+        <mxCell id="user-check" value="Validar usuário alvo" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1"><mxGeometry x="750" y="600" width="190" height="70" as="geometry" /></mxCell>
+        <mxCell id="admin-game-check" value="Validar jogo no catálogo" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1"><mxGeometry x="990" y="600" width="200" height="70" as="geometry" /></mxCell>
+        <mxCell id="admin-duplicate" value="Verificar associação existente&#xa;usuário+jogo único" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1"><mxGeometry x="1240" y="590" width="220" height="90" as="geometry" /></mxCell>
+        <mxCell id="admin-state" value="Persistir AcquiredGame para o usuário alvo" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1"><mxGeometry x="1510" y="590" width="220" height="90" as="geometry" /></mxCell>
+        <mxCell id="admin-result" value="201 Created&#xa;404 usuário/jogo inexistente&#xa;409 duplicado" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1"><mxGeometry x="1510" y="720" width="220" height="90" as="geometry" /></mxCell>
+
+        <mxCell id="query" value="GET /api/library/me&#xa;Query: consultar biblioteca" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="150" y="870" width="250" height="80" as="geometry" /></mxCell>
+        <mxCell id="query-auth" value="Policy UserOrAdministrator&#xa;UserId vem do JWT" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1"><mxGeometry x="450" y="865" width="230" height="90" as="geometry" /></mxCell>
+        <mxCell id="query-read" value="Buscar AcquiredGames do usuário&#xa;incluir dados do Game&#xa;ordenar por AcquiredAtUtc" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1"><mxGeometry x="730" y="850" width="260" height="120" as="geometry" /></mxCell>
+        <mxCell id="query-result" value="200 OK&#xa;somente jogos pertencentes ao usuário autenticado" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1"><mxGeometry x="1040" y="865" width="260" height="90" as="geometry" /></mxCell>
+
+        <mxCell id="e0" style="endArrow=block;html=1;dashed=1;" edge="1" parent="1" source="external" target="boundary"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e1" style="endArrow=block;html=1;" edge="1" parent="1" source="user" target="self-acquire"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e2" style="endArrow=block;html=1;" edge="1" parent="1" source="self-acquire" target="self-auth"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e3" style="endArrow=block;html=1;" edge="1" parent="1" source="self-auth" target="game-check"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e4" style="endArrow=block;html=1;" edge="1" parent="1" source="game-check" target="duplicate-check"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e5" style="endArrow=block;html=1;" edge="1" parent="1" source="duplicate-check" target="acquired"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e6" style="endArrow=block;html=1;" edge="1" parent="1" source="acquired" target="self-result"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e7" style="endArrow=block;html=1;" edge="1" parent="1" source="admin" target="admin-acquire"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e8" style="endArrow=block;html=1;" edge="1" parent="1" source="admin-acquire" target="admin-auth"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e9" style="endArrow=block;html=1;" edge="1" parent="1" source="admin-auth" target="user-check"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e10" style="endArrow=block;html=1;" edge="1" parent="1" source="user-check" target="admin-game-check"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e11" style="endArrow=block;html=1;" edge="1" parent="1" source="admin-game-check" target="admin-duplicate"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e12" style="endArrow=block;html=1;" edge="1" parent="1" source="admin-duplicate" target="admin-state"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e13" style="endArrow=block;html=1;" edge="1" parent="1" source="admin-state" target="admin-result"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e14" style="endArrow=block;html=1;" edge="1" parent="1" source="user" target="query"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e15" style="endArrow=block;html=1;" edge="1" parent="1" source="query" target="query-auth"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e16" style="endArrow=block;html=1;" edge="1" parent="1" source="query-auth" target="query-read"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e17" style="endArrow=block;html=1;" edge="1" parent="1" source="query-read" target="query-result"><mxGeometry relative="1" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram id="promotion-flow" name="Promoções">
+    <mxGraphModel dx="1600" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Cadastro de promoções" style="text;html=1;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="560" y="30" width="620" height="40" as="geometry" /></mxCell>
+        <mxCell id="admin" value="Administrador" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1"><mxGeometry x="50" y="300" width="50" height="80" as="geometry" /></mxCell>
+        <mxCell id="create" value="POST /api/admin/promotions&#xa;Comando: criar promoção" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="150" y="285" width="240" height="80" as="geometry" /></mxCell>
+        <mxCell id="auth" value="Policy AdministratorOnly" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1"><mxGeometry x="440" y="290" width="200" height="70" as="geometry" /></mxCell>
+        <mxCell id="validate" value="Validar promoção&#xa;- nome obrigatório&#xa;- código obrigatório&#xa;- desconto entre 0 e 100&#xa;- fim posterior ao início" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1"><mxGeometry x="690" y="255" width="260" height="140" as="geometry" /></mxCell>
+        <mxCell id="code" value="Normalizar código&#xa;Invariante: código de promoção é único" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1"><mxGeometry x="1000" y="275" width="240" height="100" as="geometry" /></mxCell>
+        <mxCell id="aggregate" value="Agregado Promotion&#xa;- nome&#xa;- código&#xa;- desconto&#xa;- início/fim UTC&#xa;- CreatedByUserId" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1"><mxGeometry x="1290" y="245" width="240" height="160" as="geometry" /></mxCell>
+        <mxCell id="persist" value="Persistir promoção" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="1570" y="290" width="170" height="70" as="geometry" /></mxCell>
+        <mxCell id="result" value="201 Created&#xa;400 validação&#xa;409 código duplicado&#xa;401/403 autorização" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1"><mxGeometry x="1450" y="500" width="220" height="100" as="geometry" /></mxCell>
+
+        <mxCell id="scope" value="Escopo da Fase 1: a promoção é registrada administrativamente. O fluxo atual não aplica desconto a um jogo nem processa compra/pagamento." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;dashed=1;" vertex="1" parent="1"><mxGeometry x="520" y="540" width="760" height="80" as="geometry" /></mxCell>
+
+        <mxCell id="e1" style="endArrow=block;html=1;" edge="1" parent="1" source="admin" target="create"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e2" style="endArrow=block;html=1;" edge="1" parent="1" source="create" target="auth"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e3" style="endArrow=block;html=1;" edge="1" parent="1" source="auth" target="validate"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e4" style="endArrow=block;html=1;" edge="1" parent="1" source="validate" target="code"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e5" style="endArrow=block;html=1;" edge="1" parent="1" source="code" target="aggregate"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e6" style="endArrow=block;html=1;" edge="1" parent="1" source="aggregate" target="persist"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e7" style="endArrow=block;html=1;" edge="1" parent="1" source="persist" target="result"><mxGeometry relative="1" as="geometry" /></mxCell>
       </root>
     </mxGraphModel>
   </diagram>

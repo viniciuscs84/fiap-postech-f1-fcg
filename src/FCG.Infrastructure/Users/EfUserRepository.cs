@@ -15,9 +15,31 @@ public sealed class EfUserRepository(AppDbContext dbContext) : IUserRepository
     }
 
     /// <inheritdoc />
+    public Task<UserAccount?> FindByIdAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        return dbContext.Users.SingleOrDefaultAsync(user => user.Id == userId, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<UserAccount>> ListAsync(CancellationToken cancellationToken)
+    {
+        return await dbContext.Users
+            .AsNoTracking()
+            .OrderBy(user => user.Name)
+            .ThenBy(user => user.Email)
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
     public Task AddAsync(UserAccount user, CancellationToken cancellationToken)
     {
         return dbContext.Users.AddAsync(user, cancellationToken).AsTask();
+    }
+
+    /// <inheritdoc />
+    public void Remove(UserAccount user)
+    {
+        dbContext.Users.Remove(user);
     }
 
     /// <inheritdoc />

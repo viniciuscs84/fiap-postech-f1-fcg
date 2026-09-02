@@ -3,7 +3,6 @@ using FCG.Infrastructure.Persistence;
 using FCG.Migrations;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,11 +12,13 @@ namespace FCG.Tests;
 
 public sealed class TestAppFactory : WebApplicationFactory<global::Program>, IAsyncDisposable
 {
-    private readonly SqliteConnection connection = new("Data Source=:memory:");
+    private readonly string databasePath = Path.Combine(Path.GetTempPath(), $"fcg-tests-{Guid.NewGuid():N}.db");
+    private readonly string connectionString;
 
     public TestAppFactory()
     {
-        connection.Open();
+        connectionString = $"Data Source={databasePath}";
+        MigrationRunner.ApplyAsync(connectionString).GetAwaiter().GetResult();
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -37,10 +38,7 @@ public sealed class TestAppFactory : WebApplicationFactory<global::Program>, IAs
                 [$"{JwtOptions.SectionName}:Audience"] = "FCG",
                 [$"{JwtOptions.SectionName}:SigningKey"] = "TEST-ONLY-KEY-CHANGE-ME-1234567890",
                 [$"{JwtOptions.SectionName}:ExpirationMinutes"] = "60",
-                [$"{BootstrapAdminOptions.SectionName}:Enabled"] = "true",
-                [$"{BootstrapAdminOptions.SectionName}:Name"] = "Administrator",
-                [$"{BootstrapAdminOptions.SectionName}:Email"] = "admin@example.com",
-                [$"{BootstrapAdminOptions.SectionName}:Password"] = "Admin123!"
+                ["ConnectionStrings:DefaultConnection"] = connectionString
             });
         });
 
@@ -52,15 +50,17 @@ public sealed class TestAppFactory : WebApplicationFactory<global::Program>, IAs
                 services.Remove(descriptor);
             }
 
-            services.AddDbContext<AppDbContext>(options => options.UseSqlite(connection, sqlite =>
-                sqlite.MigrationsAssembly(typeof(MigrationAssemblyMarker).Assembly.GetName().Name)));
+            services.AddDbContext<AppDbContext>(options => options.UseSqlite(connectionString));
         });
     }
 
     public override async ValueTask DisposeAsync()
     {
-        await connection.CloseAsync();
-        await connection.DisposeAsync();
         await base.DisposeAsync();
+
+        if (File.Exists(databasePath))
+        {
+            File.Delete(databasePath);
+        }
     }
 }
